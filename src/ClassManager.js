@@ -1,4 +1,14 @@
 (function() {
+	var Base = function() {
+		
+	};
+	
+	Base.prototype.callParent = function(methodName) {
+		if (this.__proto__ && this.__proto__[methodName]) {
+			return this.__proto__[methodName].apply(this);
+		}
+	};
+	
 	var ClassManager = {
 		/**
 		 * 定义类。 说明： config是一个对象。特殊的属性包括：init、mixins。其中： init是实例化对象时回调的函数。
@@ -106,8 +116,9 @@
 		}
 	};
 
-	Pen.define = ClassManager.define;
+	window.Pen.define = ClassManager.define;
 	// Pen._mixin = ClassManager._mixin;
 
+	window.Pen.Base = Base;
 	window.ClassManager = ClassManager;
 })();

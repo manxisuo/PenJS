@@ -40,6 +40,10 @@ Pen.require(Util);
 		
 		return this;
 	};
+	
+	EventSource.prototype.unbind = function(eventName) {
+		delete this._handlerMap[eventName];
+	};
 
 	EventSource.prototype.fireEvent = function(eventName/* [, arg1, arg2 ...] */) {
 		var len = arguments.length;

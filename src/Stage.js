@@ -9,7 +9,7 @@
 		mixins: {
 			event: Pen.EventSource
 		},
-		
+
 		canvas: null,
 		brush: null,
 		sprites: [],
@@ -23,6 +23,11 @@
 
 		_track: null,
 		_trackConfig: null,
+		_transX: 0,
+		_transY: 0,
+
+		// 事件
+		_lastMoveTime: null,
 
 		init: _init
 	});
@@ -38,20 +43,46 @@
 			y: y
 		};
 	}
+	
+	function _dispatchKeyEvent(me, e) {
+		debugger;
+	}
+
+	function _dispatchMouseEvent(me, e) {
+		var loc = _getEventLocation(me, e);
+		var sprites = me.sprites;
+		var sprite, hit;
+
+		for ( var i = 0; i < sprites.length; i++) {
+			if (sprites[i] && sprites[i].dispatchEvent) {
+				sprite = sprites[i];
+				if (!sprite.fixed) {
+					loc.x -= me._transX;
+					loc.y -= me._transY;
+				}
+				hit = sprite.dispatchEvent(e, loc.x, loc.y);
+				if (hit) {
+					break;
+				}
+			}
+		}
+	}
 
 	function _init() {
 		// init方法调用时用sprite作为this。见ClassManager.js。
 		var me = this;
+
+		me.canvas = me.brush.canvas;
 		if (!me.canvas) {
 			throw new Error('canvas is not provided.');
 			return;
 		}
 
 		me.addEvents('started', 'paused', 'resumed', 'stopped');
-		
+
 		// 在绘制一帧前触发。
 		me.addEvents('beforeframe');
-		
+
 		// 在绘制完一帧后触发。
 		me.addEvents('afterframe');
 
@@ -59,38 +90,39 @@
 
 		// 点击事件
 		me.canvas.addEventListener('click', function(e) {
-			var loc = _getEventLocation(me, e);
+			_dispatchMouseEvent(me, e);
+		}, false);
 
-			var sprites = me.sprites;
-			var hit;
+		// 鼠标按下事件
+		me.canvas.addEventListener('mousedown', function(e) {
+			_dispatchMouseEvent(me, e);
+		}, false);
 
-			for ( var i = 0; i < sprites.length; i++) {
-				if (sprites[i] && sprites[i].dispatchEvent) {
-					hit = sprites[i].dispatchEvent(e, loc.x, loc.y);
-					if (hit) {
-						break;
-					}
-				}
-			}
-
+		// 鼠标松开事件
+		me.canvas.addEventListener('mouseup', function(e) {
+			_dispatchMouseEvent(me, e);
 		}, false);
 
 		// 鼠标移动事件
 		me.canvas.addEventListener('mousemove', function(e) {
-			var loc = _getEventLocation(me, e);
-
-			var sprites = me.sprites;
-			var hit;
-
-			for ( var i = 0; i < sprites.length; i++) {
-				if (sprites[i] && sprites[i].dispatchEvent) {
-					hit = sprites[i].dispatchEvent(e, loc.x, loc.y);
-					if (hit) {
-						break;
-					}
-				}
+			var cur = +new Date();
+			if (me._lastMoveTime != null) {
+				if (cur - me._lastMoveTime < 25) { return; }
 			}
 
+			me._lastMoveTime = cur;
+			_dispatchMouseEvent(me, e);
+
+		}, false);
+
+		// 键盘按下事件
+		me.canvas.addEventListener('keydown', function(e) {
+			_dispatchKeyEvent(me, e);
+		}, false);
+
+		// 键盘松开事件
+		me.canvas.addEventListener('keyup', function(e) {
+			_dispatchKeyEvent(me, e);
 		}, false);
 	}
 
@@ -106,15 +138,7 @@
 	/**
 	 * 增加一个动画.
 	 */
-	Stage.prototype.add = function(draw, type, config) {
-		var sprite;
-
-		if (arguments[0] instanceof Sprite) {
-			sprite = arguments[0];
-		}
-		else {
-			sprite = new Sprite(draw, type, config);
-		}
+	Stage.prototype.add = function(sprite) {
 
 		this.sprites.splice(0, 0, sprite);
 
@@ -146,6 +170,29 @@
 		return complete;
 	}
 
+	Stage.prototype._doTrack = function(dt) {
+		var me = this;
+		var track = (me._track != null);
+
+		if (track) {
+			me._track.beforeDraw.call(me._track, dt);
+
+			me._transX = -me._track.x + me._trackConfig.x;
+			me._transY = -me._track.y + me._trackConfig.y;
+
+			if (me._trackConfig.type == 'x') {
+				me._transY = 0;
+			}
+			else if (me._trackConfig.type == 'y') {
+				me._transX = 0;
+			}
+		}
+		else {
+			me._transX = 0;
+			me._transY = 0;
+		}
+	}
+
 	/**
 	 * 开始动画播放.
 	 */
@@ -175,30 +222,14 @@
 				dt = Math.round(dt);
 
 				me.fireEvent('beforeframe');
-				
-				// 追踪处理
-				var track = me._track;
-				if (track) {
-					me._track.beforeDraw.call(me._track, dt);
-					me.brush.save();
 
-					var transX = -me._track.x + me._trackConfig.x;
-					var transY = -me._track.y + me._trackConfig.y;
-
-					if (me._trackConfig.type == 'x') {
-						transY = 0;
-					}
-					else if (me._trackConfig.type == 'y') {
-						transX = 0;
-					}
-					me.brush.translate(transX, transY);
-				}
-				
 				// 渲染所有动画.
 				// 为了能够在循环中删除元素, 所以采用了逆序循环. 而添加元素时, 是放到数组开始的.
 				// 这样一来, 最后添加的动画将会位于顶层.
 				var sprites = me.sprites;
 				var cur;
+				me._doTrack(dt);
+
 				for ( var i = sprites.length - 1; i >= 0; i--) {
 					cur = sprites[i];
 
@@ -211,7 +242,7 @@
 					if (checkCompleted(cur, dt)) {
 
 						// TODO 如果追踪的Sprite停止播放了该怎么处理?
-						if (cur == me._track) {
+						if (cur == trackedSprite) {
 							me.stopTrack();
 						}
 
@@ -228,17 +259,17 @@
 
 						cur.fireEvent('beforedraw');
 
-						cur.draw.call(cur, dt);
+						me.brush.tmp(function() {
+							if (!cur.fixed) {
+								me.brush.translate(me._transX, me._transY);
+							}
+							cur.draw.call(cur, me.brush, dt);
+						});
 
 						cur.finishedCount++;
 					}
 				}
 
-				// 追踪处理
-				if (track) {
-					me.brush.restore();
-				}
-				
 				me.fireEvent('afterframe');
 			}
 

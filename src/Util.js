@@ -1,6 +1,8 @@
 (function(window) {
 	var Util = {};
 
+	var PI = Math.PI;
+
 	/**
 	 * 返回N个数中的最小值. 至少需要提供一个参数.
 	 */
@@ -90,7 +92,6 @@
 	 * @return 速度的方向角
 	 */
 	Util.getAngle = function(dx, dy) {
-		var PI = Math.PI;
 		var angle;
 		if (dx > 0) {
 			if (dy >= 0)
@@ -167,47 +168,46 @@
 	Util.isNumber = function(v) {
 		return typeof v === 'number' && isFinite(v);
 	};
-	
+
 	Util.isNumeric = function(v) {
 		return !isNaN(parseFloat(v)) && isFinite(v);
 	};
-	
-	Util.isDate= function(v) {
-        return toString.call(v) === '[object Date]';
-    };
-    
-    Util.isArray = ('isArray' in Array) ? Array.isArray : function(value) {
-        return toString.call(value) === '[object Array]';
-    };
 
-    Util.isSimpleObject= function(v) {
-        return v instanceof Object && v.constructor === Object;
-    };
+	Util.isDate = function(v) {
+		return toString.call(v) === '[object Date]';
+	};
 
-    Util.isPrimitive= function(v) {
-        var type = typeof v;
+	Util.isArray = ('isArray' in Array) ? Array.isArray : function(value) {
+		return toString.call(value) === '[object Array]';
+	};
 
-        return type === 'string' || type === 'number' || type === 'boolean';
-    };
-    
-    Util.isFunction = function(v) {
-    	return typeof v == 'function';
-    };
-    
-    Util.isRegExp = function(v) {
-    	return v instanceof RegExp;
-    };
-    
-    /**
-     * 递归对象的所有属性，并且对每个属性(包括对象本身)调用一个回调函数。
-     * 采用后序遍历的顺序。
-     * 
-     * @param obj 对象
-     * @param callback 回调函数。有三个参数：当前属性所在的对象、当前属性的名称、当前属性的值。
-     */
+	Util.isSimpleObject = function(v) {
+		return v instanceof Object && v.constructor === Object;
+	};
+
+	Util.isPrimitive = function(v) {
+		var type = typeof v;
+
+		return type === 'string' || type === 'number' || type === 'boolean';
+	};
+
+	Util.isFunction = function(v) {
+		return typeof v == 'function';
+	};
+
+	Util.isRegExp = function(v) {
+		return v instanceof RegExp;
+	};
+
+	/**
+	 * 递归对象的所有属性，并且对每个属性(包括对象本身)调用一个回调函数。 采用后序遍历的顺序。
+	 * 
+	 * @param obj 对象
+	 * @param callback 回调函数。有三个参数：当前属性所在的对象、当前属性的名称、当前属性的值。
+	 */
 	Util.recurseObject = (function() {
 		function handle(obj, callback) {
-			for (var p in obj) {
+			for ( var p in obj) {
 				var v = obj[p]
 				if (v == undefined || Util.isPrimitive(v)) {
 					callback(obj, p, v);
@@ -218,7 +218,7 @@
 				}
 			}
 		}
-		
+
 		return function(obj, callback) {
 			if (obj && callback) {
 				handle(obj, callback);
@@ -226,6 +226,100 @@
 			}
 		}
 	})();
+
+	/**
+	 * 判断某个点是否在矩形内。
+	 * 
+	 * @param dotX 点的X坐标
+	 * @param dotY 点的X坐标
+	 * @param rectX 矩形中心的X坐标
+	 * @param rectY 矩形中心的Y坐标
+	 * @param rectWidth 矩形的宽度
+	 * @param rectHeight 矩形的高度
+	 * @param includeBorder 是否将边框算在内。true表示点在边框时也算在矩形内。
+	 */
+	Util.isDotInRect = function(dotX, dotY, rectX, rectY, rectWidth, rectHeight, includeBorder) {
+		if (includeBorder) {
+			return Math.abs(dotX - rectX) <= rectWidth / 2
+					&& Math.abs(dotY - rectY) <= rectHeight / 2;
+		}
+		else {
+			return Math.abs(dotX - rectX) < rectWidth / 2
+					&& Math.abs(dotY - rectY) < rectHeight / 2;
+		}
+	};
+
+	Util.distance = function(x1, y1, x2, y2) {
+		return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+	};
+
+	/**
+	 * 将一个将转换到[0, 2π)范围。
+	 */
+	Util.normalizeAngle = function(angle) {
+		angle %= 2 * PI;
+
+		if (angle < 0) {
+			angle += 2 * PI
+		}
+
+		return angle;
+	};
+
+	/**
+	 * 计算一个向量的角度。在[0, 2π)的范围。
+	 */
+	Util.angleOfVector = function(x, y) {
+		var angle;
+		if (x == 0 && y == 0) {
+			angle = undefined;
+		}
+		else if (x == 0 && y > 0) {
+			angle = PI / 2;
+		}
+		else if (x == 0 && y < 0) {
+			angle = PI * 3 / 2;
+		}
+		else {
+			var atan = Math.atan(y / x);
+
+			if (x < 0) {
+				angle = atan + PI;
+			}
+			else if (x > 0 && y >= 0) {
+				angle = atan;
+			}
+			else {
+				angle = atan + 2 * PI;
+			}
+		}
+
+		return angle;
+	};
+
+	Util.isDotInFan = function(dotX, dotY, x, y, r, beginAngle, endAngle, includeBorder) {
+		if (dotX == x && dotY == y) {
+			return includeBorder;
+		}
+		else {
+			var distance = Util.distance(dotX, dotY, x, y);
+			var dotAngle = Util.angleOfVector(dotX - x, dotY - y);
+			beginAngle = Util.normalizeAngle(beginAngle);
+			if (endAngle == 0 || endAngle == PI * 2) {
+				endAngle = PI * 2;
+			}
+			else {
+				endAngle = Util.normalizeAngle(endAngle);
+			}
+
+			if (includeBorder) {
+				return distance <= r && dotAngle >= beginAngle && dotAngle <= endAngle;
+			}
+			else {
+				return distance < r && dotAngle > beginAngle && dotAngle < endAngle;
+			}
+		}
+	};
 
 	window.Util = Util;
 })(window);

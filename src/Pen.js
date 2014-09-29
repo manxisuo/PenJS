@@ -1,7 +1,8 @@
 (function() {
 	var Pen = Pen || {};
 
-	var scriptList = ['Util.js', 'Loader.js', 'ClassManager.js.js', 'Event.js', 'Stage.js', 'Sprite.js', 'Storage.js', 'Brush.js'];
+	var scriptList = ['Util.js', 'Loader.js', 'ClassManager.js.js', 'Event.js', 'Stage.js',
+			'Sprite.js', 'Storage.js', 'Brush.js'];
 
 	Pen.config = {
 		root: ''
@@ -86,14 +87,19 @@
 	 * 初始化Pen JS。
 	 */
 	Pen.init = function() {
-//		var me = this;
-//		me.loadJS(getFullPath(me.config.root, 'Util.js'), function() {
-//			for ( var i in scriptList) {
-//				me.loadJS(getFullPath(me.config.root, scriptList[i]));
-//			}
-//		});
+		// var me = this;
+		// me.loadJS(getFullPath(me.config.root, 'Util.js'), function() {
+		// for ( var i in scriptList) {
+		// me.loadJS(getFullPath(me.config.root, scriptList[i]));
+		// }
+		// });
 	}
 
 	window.Pen = Pen;
+	window.Global = {
+		brush: null,
+		stage: null,
+		canvas: null,
+		ctx: null,
+	};
 })();
-

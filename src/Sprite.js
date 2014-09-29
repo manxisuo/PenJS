@@ -1,5 +1,5 @@
 (function(window) {
-	var Sprite = Pen.define({
+	var Sprite = Pen.define(Pen.Base, {
 		mixins: {
 			event: Pen.EventSource
 		},
@@ -36,6 +36,9 @@
 		kx: 0,
 		ky: 0,
 
+		fixed: false,
+		stoppable: true,
+		
 		scale: {
 			x: 1,
 			y: 1
@@ -56,7 +59,10 @@
 		},
 
 		init: function() {
-			this.addEvents('click', 'mouseenter', 'mouseleave');
+			this.type = Sprite.CONTINOUS;
+			
+			this.addEvents('click', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave');
+			this.addEvents('click', 'keydown', 'keyup');
 
 			// 每次绘制帧前触发。
 			// 在Sprite的beforeDraw和draw方法之间触发。
@@ -72,7 +78,23 @@
 			case 'click': {
 				var hit = this.checkInside(x, y);
 				if (hit) {
-					this.fireEvent('click', new Pen.Event(this, e));
+					this.fireEvent('click', e);
+				}
+
+				return hit;
+			}
+			case 'mousedown': {
+				var hit = this.checkInside(x, y);
+				if (hit) {
+					this.fireEvent('mousedown', e);
+				}
+
+				return hit;
+			}
+			case 'mouseup': {
+				var hit = this.checkInside(x, y);
+				if (hit) {
+					this.fireEvent('mouseup', e);
 				}
 
 				return hit;
@@ -81,10 +103,10 @@
 				var hit = this.checkInside(x, y);
 
 				if (!this._mouseInside && hit) {
-					this.fireEvent('mouseenter', new Pen.Event(this, e));
+					this.fireEvent('mouseenter', e);
 				}
 				else if (this._mouseInside && !hit) {
-					this.fireEvent('mouseleave', new Pen.Event(this, e));
+					this.fireEvent('mouseleave', e);
 				}
 
 				this._mouseInside = hit;
