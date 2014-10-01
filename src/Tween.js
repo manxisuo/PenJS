@@ -3,16 +3,44 @@
 		stage: null,
 		target: null,
 		beforeDrawBackup: null,
-		twList: [],
+		twList: null,
 		init: function() {
-			this.stage = Pen.Global.stage;
-			this.beforeDrawBackup = this.target.beforeDraw;
+			var me = this, target = me.target;
+			me.stage = Pen.Global.stage;
+			me.twList = [];
+
+			if (!me._hasTween(target)) {
+				me.beforeDrawBackup = target.beforeDraw;
+				
+				target.beforeDraw = function() {
+					for (var i in target._tweenFnList) {
+						target._tweenFnList[i]();
+					}
+				}
+			}
+		},
+
+		_hasTween: function(sprite) {
+			if (sprite) {
+				var p;
+				for (p in sprite._tweenFnList) {
+					return true;
+				}
+			}
+
+			return false;
 		},
 
 		_tweenOver: function() {
-			var me = this, ns = '.' + me.id
-			me.target.beforeDraw = me.beforeDrawBackup;
-			me.target.unbind(ns);
+			var me = this, ns = '.' + me.id, target = me.target;
+
+			delete target._tweenFnList[me.id];
+			
+			if (!me._hasTween(target) && me.beforeDrawBackup != null) {
+				target.beforeDraw = me.beforeDrawBackup;
+			}
+
+			target.unbind(ns);
 			me.stage.unbind(ns);
 		},
 
@@ -52,7 +80,7 @@
 
 			tw.startTime = +new Date;
 
-			target.beforeDraw = function() {
+			target._tweenFnList[me.id] = function() {
 				var t, current = +new Date;
 				if (tw.passing != null) {
 					t = tw.passing;
@@ -72,7 +100,6 @@
 					target[p] = tw.ease(t, b, c, d);
 				}
 			};
-
 		},
 
 		stop: function() {

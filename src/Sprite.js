@@ -38,6 +38,9 @@
 		kx: 0,
 		ky: 0,
 
+		// 缓动函数列表。
+		_tweenFnList: {},
+
 		fixed: false,
 		stoppable: true,
 
@@ -62,12 +65,12 @@
 
 		init: function() {
 			this.addEvents('click', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave');
-			this.addEvents('click', 'keydown', 'keyup');
+			this.addEvents('keypress', 'keydown', 'keyup');
 
 			// 每次绘制帧前触发。
 			// 在Sprite的beforeDraw和draw方法之间触发。
 			this.addEvents('beforedraw');
-			
+
 			// 每次绘制帧后触发。
 			// 在Sprite的draw方法之后触发。
 			this.addEvents('afterdraw');
