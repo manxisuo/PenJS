@@ -321,5 +321,15 @@
 		}
 	};
 
-	window.Util = Util;
+	Util.trim = function(str) {
+		if (str && str instanceof String) {
+			// return str.replace(/\s+$/g, '').replace(/^\s+/g, '');
+			return str.trim();
+		}
+		else {
+			return str;
+		}
+	};
+
+	window.Pen.Util = Util;
 })(window);

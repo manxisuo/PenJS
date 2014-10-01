@@ -1,44 +1,46 @@
 (function() {
 	var Base = function() {
-		
+
 	};
-	
+
 	Base.prototype.callParent = function(methodName) {
-		if (this.__proto__ && this.__proto__[methodName]) {
-			return this.__proto__[methodName].apply(this);
-		}
+		if (this.__proto__ && this.__proto__[methodName]) { return this.__proto__[methodName]
+				.apply(this); }
 	};
-	
+
 	var ClassManager = {
 		/**
-		 * 定义类。 说明： config是一个对象。特殊的属性包括：init、mixins。其中： init是实例化对象时回调的函数。
-		 * mixins指定混入的类。例如： mixins: { event: Pen.Event }
+		 * 定义类。 说明： config是一个对象。
+		 * 特殊的属性包括：extend、init、mixins。其中：
+		 *  extend是父类。
+		 * 	init是实例化对象时的初始化函数。
+		 * 	mixins指定混入的类。例如： mixins: { event: Pen.Event }
 		 * 
-		 * @param parent 父类。可选，默认为Object。
+		 * @param className 类名称。可选，默认为空字符串。
 		 * @param config 配置对象。可选，默认为空对象。
 		 */
-		define: function(/* [parent], [config] */) {
-
+		define: function(/* [className], [config] */) {
 			// 处理参数
-			var parent, config;
+			var className, config, parent;
 			var args = arguments, len = args.length;
-			
+
 			if (len == 1) {
-				if (Util.isFunction(args[0])) {
-					parent = args[0];
+				if (args[0] instanceof String) {
+					className = args[0];
 				}
 				else {
 					config = args[0];
 				}
 			}
 			else if (len == 2) {
-				parent = args[0];
+				className = args[0];
 				config = args[1];
 			}
-			
-			parent = parent || Object;
+
+			className = className || '';
 			config = config || {};
-			
+			parent = config.extend || Pen.Base;
+
 			// 定义类(构造函数)
 			var cls = function(config2) {
 				// 调用父类构造函数
@@ -51,14 +53,17 @@
 						mixinClasses[name].apply(this);
 					}
 				}
-				
+
 				// 将config的属性拷贝到原型 
 				// TODO: 应该拷到原型还是this?
 				Pen.copy(this, config);
 
 				// 将config的属性拷贝到原型
 				Pen.copy(this, config2);
-				
+
+				// 在实例中增加一个属性指向类。方便引用。
+				this.self = cls;
+
 				// 调用初始化方法
 				if (config2 && config2.init) {
 					config2.init.apply(this);
@@ -67,6 +72,8 @@
 					config.init.apply(this);
 				}
 			};
+
+			cls.className = className;
 
 			// 实现继承(指定类的原型)
 			cls.prototype = new parent();
@@ -79,14 +86,14 @@
 
 				delete config.mixins;
 			}
-			
+
 			// 静态变量和方法
 			if (config.statics) {
 				Pen.copy(cls, config.statics);
-				
+
 				delete config.statics;
 			}
-			
+
 			return cls;
 		},
 
@@ -120,5 +127,5 @@
 	// Pen._mixin = ClassManager._mixin;
 
 	window.Pen.Base = Base;
-	window.ClassManager = ClassManager;
+	window.Pen.ClassManager = ClassManager;
 })();

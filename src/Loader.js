@@ -68,5 +68,5 @@
 		};
 	}
 
-	window.Loader = Loader;
+	window.Pen.Loader = Loader;
 })(window);

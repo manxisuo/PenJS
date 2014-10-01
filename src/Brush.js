@@ -1,6 +1,6 @@
 (function(window) {
 
-	var Brush = Pen.define({
+	var Brush = Pen.define('Brush', {
 		canvas: null,
 
 		init: function() {
@@ -108,23 +108,23 @@
 	/**
 	 * 画圆角矩形。
 	 */
-	Brush.prototype.roundRect = function(x, y, w, h, corner) {
-		corner = Pen.copy({
+	Brush.prototype.roundRect = function(x, y, w, h, corners) {
+		corners = Pen.copy({
 			lt: 0,
 			rt: 0,
 			rb: 0,
 			lb: 0
-		}, corner);
+		}, corners);
 
-		var size = Util.min(w / 2, h / 2);
+		var size = Pen.Util.min(w / 2, h / 2);
 
-		for ( var p in corner) {
-			if (corner[p] > size) {
-				corner[p] = size;
+		for ( var p in corners) {
+			if (corners[p] > size) {
+				corners[p] = size;
 			}
 		}
 
-		var lt = corner.lt, rt = corner.rt, rb = corner.rb, lb = corner.lb;
+		var lt = corners.lt, rt = corners.rt, rb = corners.rb, lb = corners.lb;
 		var PI = Math.PI;
 
 		ctx.save();
@@ -215,7 +215,7 @@
 			}
 			ctx.fillStyle = color;
 
-			var size = DocUtil.getTextSize(text, ctx.font);
+			var size = Pen.DocUtil.getTextSize(text, ctx.font);
 			ctx.fillText(text, x - size.width / 2, y + size.height / 2 - size.height * 3 / 16);
 		});
 
@@ -440,6 +440,6 @@
 		return this.gradient;
 	};
 
-	window.Brush = Brush;
+	window.Pen.Brush = Brush;
 
 })(window);

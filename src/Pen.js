@@ -1,4 +1,4 @@
-(function() {
+(function(window) {
 	var Pen = Pen || {};
 
 	var scriptList = ['Util.js', 'Loader.js', 'ClassManager.js.js', 'Event.js', 'Stage.js',
@@ -8,8 +8,8 @@
 		root: ''
 	};
 
+	// TODO
 	Pen.require = function(className) {
-
 	};
 
 	Pen.setConfig = function(config) {
@@ -86,20 +86,33 @@
 	/**
 	 * 初始化Pen JS。
 	 */
-	Pen.init = function() {
+	Pen.init = function(canvas) {
 		// var me = this;
 		// me.loadJS(getFullPath(me.config.root, 'Util.js'), function() {
 		// for ( var i in scriptList) {
 		// me.loadJS(getFullPath(me.config.root, scriptList[i]));
 		// }
 		// });
+
+		var ctx, brush, stage;
+
+		ctx = canvas.getContext('2d');
+		brush = new Pen.Brush({
+			canvas: canvas
+		});
+		stage = new Pen.Stage({
+			brush: brush,
+		});
+
+		Pen.copy(Pen.Global, {
+			canvas: canvas,
+			ctx: ctx,
+			brush: brush,
+			stage: stage
+		});
 	}
 
+	Pen.Global = {};
+
 	window.Pen = Pen;
-	window.Global = {
-		brush: null,
-		stage: null,
-		canvas: null,
-		ctx: null,
-	};
-})();
+})(window);

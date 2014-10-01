@@ -1,7 +1,10 @@
 (function(window) {
-	var Component = Pen.define(Sprite, {});
+	var Component = Pen.define('Component', {
+		extend: Pen.Sprite
+	});
 
-	var Button = Pen.define(Component, {
+	var Button = Pen.define('Button', {
+		extend: Component,
 		FILL_COLOR: {
 			NORMAL: null,
 			HOVER: null,
@@ -31,12 +34,12 @@
 
 		init: function() {
 			var me = this;
-			var brush = Global.stage.brush;
+			var brush = Pen.Global.stage.brush;
 
 			me.callParent('init');
 
 			me.roundRect = new Pen.RoundRect({
-				corner: {
+				corners: {
 					lt: 5,
 					rt: 5,
 					rb: 5,
@@ -68,16 +71,16 @@
 			me.on('mouseenter', function(e) {
 				me.fillColor = me.FILL_COLOR.HOVER;
 				me.borderColor = me.BORDER_COLOR.HOVER;
-				me._backupCursor = Global.stage.canvas.style.cursor;
+				me._backupCursor = Pen.Global.stage.canvas.style.cursor;
 
-				Global.stage.canvas.style.cursor = 'pointer';
+				Pen.Global.stage.canvas.style.cursor = 'pointer';
 			});
 
 			me.on('mouseleave', function(e) {
 				me.fillColor = me.FILL_COLOR.NORMAL;
 				me.borderColor = me.BORDER_COLOR.NORMAL;
 
-				Global.stage.canvas.style.cursor = me._backupCursor;
+				Pen.Global.stage.canvas.style.cursor = me._backupCursor;
 			});
 
 			me.on('mousedown', function() {

@@ -1,5 +1,5 @@
 (function(window) {
-	var Sprite = Pen.define(Pen.Base, {
+	var Sprite = Pen.define('Sprite', {
 		mixins: {
 			event: Pen.EventSource
 		},
@@ -10,6 +10,8 @@
 			DURATION: 3,
 			UNTIL: 4
 		},
+
+		name: '',
 
 		// 动画类型相关参数
 		type: 1,
@@ -38,7 +40,7 @@
 
 		fixed: false,
 		stoppable: true,
-		
+
 		scale: {
 			x: 1,
 			y: 1
@@ -59,8 +61,6 @@
 		},
 
 		init: function() {
-			this.type = Sprite.CONTINOUS;
-			
 			this.addEvents('click', 'mousedown', 'mouseup', 'mouseenter', 'mouseleave');
 			this.addEvents('click', 'keydown', 'keyup');
 
@@ -120,5 +120,5 @@
 		return false;
 	}
 
-	window.Sprite = Sprite;
+	window.Pen.Sprite = Sprite;
 })(window);

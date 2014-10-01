@@ -5,7 +5,11 @@
 				setTimeout(callback, 1000 / 60);
 			};
 
-	var Stage = Pen.define({
+	var cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame
+			|| window.webkitCancelAnimationFrame || window.msCancelAnimationFrame
+			|| window.oCancelAnimationFrame || window.clearTimeout
+
+	var Stage = Pen.define('Stage', {
 		mixins: {
 			event: Pen.EventSource
 		},
@@ -33,7 +37,7 @@
 	});
 
 	function _getEventLocation(me, e) {
-		var offset = DocUtil.offset(me.canvas);
+		var offset = Pen.DocUtil.offset(me.canvas);
 
 		var x = e.pageX - offset.left;
 		var y = e.pageY - offset.top;
@@ -43,9 +47,9 @@
 			y: y
 		};
 	}
-	
+
 	function _dispatchKeyEvent(me, e) {
-		debugger;
+		// TODO
 	}
 
 	function _dispatchMouseEvent(me, e) {
@@ -56,11 +60,14 @@
 		for ( var i = 0; i < sprites.length; i++) {
 			if (sprites[i] && sprites[i].dispatchEvent) {
 				sprite = sprites[i];
+
 				if (!sprite.fixed) {
-					loc.x -= me._transX;
-					loc.y -= me._transY;
+					hit = sprite.dispatchEvent(e, loc.x - me._transX, loc.y - me._transY);
 				}
-				hit = sprite.dispatchEvent(e, loc.x, loc.y);
+				else {
+					hit = sprite.dispatchEvent(e, loc.x, loc.y);
+				}
+
 				if (hit) {
 					break;
 				}
@@ -69,7 +76,6 @@
 	}
 
 	function _init() {
-		// init方法调用时用sprite作为this。见ClassManager.js。
 		var me = this;
 
 		me.canvas = me.brush.canvas;
@@ -151,17 +157,17 @@
 
 		var complete = false;
 
-		if (sprite.type == Sprite.COUNT) {
+		if (sprite.type == Pen.Sprite.COUNT) {
 			if (sprite.count == sprite.finishedCount) {
 				complete = true;
 			}
 		}
-		else if (sprite.type == Sprite.DURATION) {
+		else if (sprite.type == Pen.Sprite.DURATION) {
 			if (timeStamp - sprite.startTime >= sprite.duration) {
 				complete = true;
 			}
 		}
-		else if (sprite.type == Sprite.UNTIL) {
+		else if (sprite.type == Pen.Sprite.UNTIL) {
 			if (sprite.util == undefined || sprite.util()) {
 				complete = true;
 			}
@@ -205,8 +211,8 @@
 		var loopCount = 0;
 		var loop = function(timeStamp) {
 
-			// 抛弃前2次(这个负责的判断是为了在loopCount增加到3后，不再继续增加)
-			if ((loopCount >= 3 || loopCount < 3 && ++loopCount == 3) && me.status == 'running') {
+			// TODO 抛弃前2次(这个负责的判断是为了在loopCount增加到3后，不再继续增加)
+			if (/* (loopCount >= 3 || loopCount < 3 && ++loopCount == 3) && */me.status == 'running') {
 
 				// 计算时间增量
 				if (me._lastTS == 0) {
@@ -214,6 +220,9 @@
 				}
 				else {
 					dt = timeStamp - me._lastTS;
+
+					// TODO
+					dt = 17;
 				}
 				me._lastTS = timeStamp;
 
@@ -239,10 +248,10 @@
 					}
 
 					// 判断是否结束
-					if (checkCompleted(cur, dt)) {
+					if (checkCompleted(cur, timeStamp)) {
 
 						// TODO 如果追踪的Sprite停止播放了该怎么处理?
-						if (cur == trackedSprite) {
+						if (cur == me._track) {
 							me.stopTrack();
 						}
 
@@ -343,6 +352,11 @@
 		var sprites = this.sprites;
 		for ( var i = sprites.length - 1; i >= 0; i--) {
 			if (sprites[i] == sprite) {
+
+				if (this._track == sprite) {
+					this.stopTrack();
+				}
+
 				sprites.splice(i, 1);
 
 				break;
@@ -365,15 +379,16 @@
 	 * 恢复变速前的速度.
 	 */
 	Stage.prototype.restoreSpeed = function() {
-		me.zoom == 1;
+		this.zoom = 1;
 	};
 
 	/**
 	 * 清空Sprite列表.
 	 */
 	Stage.prototype.clear = function() {
+		this.stopTrack();
 		this.sprites = [];
 	};
 
-	window.Stage = Stage;
+	window.Pen.Stage = Stage;
 })(window);

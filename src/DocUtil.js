@@ -79,5 +79,5 @@
 		})(),
 	};
 
-	window.DocUtil = DocUtil;
+	window.Pen.DocUtil = DocUtil;
 })(window);

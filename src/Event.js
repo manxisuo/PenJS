@@ -1,5 +1,4 @@
-Pen.require(Util);
-(function() {
+(function(window) {
 	var Event = function(target, sourceEvent) {
 		this.target = target;
 		this.sourceEvent = sourceEvent;
@@ -20,7 +19,7 @@ Pen.require(Util);
 		var e;
 		for ( var i in arguments) {
 			e = arguments[i];
-			if (Util.isArray(e)) {
+			if (Pen.Util.isArray(e)) {
 				this.events = this.events.concat(e);
 			}
 			else {
@@ -61,6 +60,6 @@ Pen.require(Util);
 		return this;
 	};
 
-	Pen.Event = Event;
-	Pen.EventSource = EventSource;
-})();
+	window.Pen.Event = Event;
+	window.Pen.EventSource = EventSource;
+})(window);

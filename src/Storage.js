@@ -22,5 +22,5 @@
 		}
 	};
 
-	window.StorageManager = manager;
+	window.Pen.StorageManager = manager;
 })();
