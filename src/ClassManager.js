@@ -21,11 +21,12 @@
 		 */
 		define: function(/* [className], [config] */) {
 			// 处理参数
+			var me = this;
 			var className, config, parent;
 			var args = arguments, len = args.length;
 
 			if (len == 1) {
-				if (args[0] instanceof String) {
+				if (Pen.Util.isString(args[0])) {
 					className = args[0];
 				}
 				else {
@@ -63,6 +64,9 @@
 
 				// 在实例中增加一个属性指向类。方便引用。
 				this.self = cls;
+				
+				// 将类名放到实例中。
+				this.$className = className;
 
 				// 调用初始化方法
 				if (config2 && config2.init) {
@@ -73,15 +77,13 @@
 				}
 			};
 
-			cls.className = className;
-
 			// 实现继承(指定类的原型)
 			cls.prototype = new parent();
 
 			// 处理mixins
 			if (config.mixins) {
 				for ( var mixinName in config.mixins) {
-					ClassManager._mixin(cls, mixinName, config.mixins[mixinName]);
+					me._mixin(cls, mixinName, config.mixins[mixinName]);
 				}
 
 				delete config.mixins;
@@ -94,7 +96,40 @@
 				delete config.statics;
 			}
 
+			cls.className = className;
+
+			if (className) {
+				debugger;
+				me._buildNamespace(className, cls);
+			}
+
 			return cls;
+		},
+
+		/**
+		 * 建立命名空间。
+		 * 
+		 * @param className 用点分割的类名
+		 */
+		_buildNamespace: function(className, newClass) {
+			if (!className)
+				return;
+			var arr = className.split('.'), len = arr.length;
+			var i, cls, name, scope = window;
+
+			for ( var i = 0; i < len; i++) {
+				name = arr[i];
+				cls = window[name];
+				if (undefined == cls) {
+					scope[name] = {};
+				}
+
+				if (i == len - 1) {
+					scope[name] = newClass;
+				}
+
+				scope = scope[name];
+			}
 		},
 
 		/**
@@ -123,8 +158,7 @@
 		}
 	};
 
-	window.Pen.define = ClassManager.define;
-	// Pen._mixin = ClassManager._mixin;
+	window.Pen.define = ClassManager.define.bind(ClassManager);
 
 	window.Pen.Base = Base;
 	window.Pen.ClassManager = ClassManager;

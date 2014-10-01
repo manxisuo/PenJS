@@ -2,15 +2,15 @@
 	/**
 	 * 形状。
 	 */
-	var Shape = Pen.define('Shape', {
+	Pen.define('Pen.Shape', {
 		extend: Pen.Sprite
 	});
 
 	/**
 	 * 圆角矩形
 	 */
-	var RoundRect = Pen.define('RoundRect', {
-		extend: Shape,
+	Pen.define('Pen.RoundRect', {
+		extend: Pen.Shape,
 
 		// 位置和尺寸。
 		x: 50,
@@ -145,8 +145,8 @@
 	/**
 	 * 折线。指可以将两个点链接起来的三条垂直或水平线段组成的折线。
 	 */
-	var Polyline = Pen.define('Polyline', {
-		extend: Shape,
+	Pen.define('Pen.Polyline', {
+		extend: Pen.Shape,
 		startX: 100,
 		startY: 100,
 		endX: 200,
@@ -167,14 +167,14 @@
 			Y: 2
 		},
 		draw: function(brush, dt) {
-			var me = this;
+			var me = this, self = me.self;
 
 			brush.tmp(function() {
 				brush.setStrokeStyle(me.color);
 				brush.setLineWith(me.width);
 				brush.beginPath();
 				brush.moveTo(me.startX, me.startY);
-				if (me.type == Polyline.X) {
+				if (me.type == self.X) {
 					brush.lineTo(me.startX, me.center);
 					brush.lineTo(me.endX, me.center);
 					brush.lineTo(me.endX, me.endY);
@@ -189,8 +189,4 @@
 			});
 		}
 	});
-
-	window.Pen.Shape = Shape;
-	window.Pen.RoundRect = RoundRect;
-	window.Pen.Polyline = Polyline;
 })(window);

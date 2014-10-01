@@ -1,5 +1,5 @@
 (function(window) {
-	var Sprite = Pen.define('Sprite', {
+	var Sprite = Pen.define('Pen.Sprite', {
 		mixins: {
 			event: Pen.EventSource
 		},
@@ -119,6 +119,4 @@
 	Sprite.prototype.checkInside = function(x, y) {
 		return false;
 	}
-
-	window.Pen.Sprite = Sprite;
 })(window);

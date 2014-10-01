@@ -1,6 +1,6 @@
 (function(window) {
 
-	var Brush = Pen.define('Brush', {
+	var Brush = Pen.define('Pen.Brush', {
 		canvas: null,
 
 		init: function() {
@@ -439,7 +439,4 @@
 	Gradient.prototype.make = function() {
 		return this.gradient;
 	};
-
-	window.Pen.Brush = Brush;
-
 })(window);

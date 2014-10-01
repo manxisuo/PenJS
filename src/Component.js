@@ -1,10 +1,16 @@
 (function(window) {
-	var Component = Pen.define('Component', {
+	/**
+	 * 组件类。
+	 */
+	Pen.define('Pen.Component', {
 		extend: Pen.Sprite
 	});
 
-	var Button = Pen.define('Button', {
-		extend: Component,
+	/**
+	 * 按钮。
+	 */
+	Pen.define('Pen.Button', {
+		extend: Pen.Component,
 		FILL_COLOR: {
 			NORMAL: null,
 			HOVER: null,
@@ -113,8 +119,4 @@
 			return me.roundRect.checkInside(ex, ey);
 		}
 	});
-
-	window.Pen.Component = Component;
-	window.Pen.Button = Button;
-
 })(window);

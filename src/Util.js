@@ -194,6 +194,10 @@
 	Util.isFunction = function(v) {
 		return typeof v == 'function';
 	};
+	
+	Util.isString = function(v) {
+		return typeof v == 'string';
+	};
 
 	Util.isRegExp = function(v) {
 		return v instanceof RegExp;

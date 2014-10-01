@@ -9,7 +9,9 @@
 			|| window.webkitCancelAnimationFrame || window.msCancelAnimationFrame
 			|| window.oCancelAnimationFrame || window.clearTimeout
 
-	var Stage = Pen.define('Stage', {
+	
+	// 舞台类
+	var Stage = Pen.define('Pen.Stage', {
 		mixins: {
 			event: Pen.EventSource
 		},
@@ -389,6 +391,4 @@
 		this.stopTrack();
 		this.sprites = [];
 	};
-
-	window.Pen.Stage = Stage;
 })(window);
