@@ -10,27 +10,25 @@
 		},
 
 		_tweenOver: function() {
-			var me = this;
+			var me = this, ns = '.' + me.id
 			me.target.beforeDraw = me.beforeDrawBackup;
-			me.target.unbind('afterdraw');
+			me.target.unbind(ns);
+			me.stage.unbind(ns);
 		},
 
 		_handleNext: function() {
 			var me = this, twList = me.twList, target = me.target;
-			var tw = twList[0];
+			var tw = twList[0], ns = '.' + me.id;
 
-			me.stage.unbind('paused').on('paused', function() {
-				tw.passing = +new Date - tw.startTime;
-			});
-
-			me.stage.unbind('stopped').on('stopped', function() {
-				tw.passing = +new Date - tw.startTime;
-			});
+			// 处理stage暂停或停止的情况
+			me.stage.unbind('paused' + ns, 'stopped' + ns).on('paused' + ns, 'stopped' + ns,
+					function() {
+						tw.passing = +new Date - tw.startTime;
+					});
 
 			// 判断是否结束
-			me.target.unbind('afterdraw').on('afterdraw', function() {
+			me.target.unbind('afterdraw' + ns).on('afterdraw' + ns, function() {
 				if (+new Date - tw.startTime >= tw.duration) {
-
 					if (tw.loop) {
 						twList.push(twList.shift());
 					}
@@ -43,7 +41,6 @@
 
 						return;
 					}
-
 					me._handleNext();
 				}
 			});
@@ -56,7 +53,6 @@
 			tw.startTime = +new Date;
 
 			target.beforeDraw = function() {
-
 				var t, current = +new Date;
 				if (tw.passing != null) {
 					t = tw.passing;
@@ -87,6 +83,14 @@
 			return this.to(duration, {});
 		},
 
+		sleep: function() {
+			return this.to(duration, {});
+		},
+
+		delay: function() {
+			return this.to(duration, {});
+		},
+
 		to: function(duration, params) {
 			var me = this;
 
@@ -103,6 +107,7 @@
 				ease: ease,
 				loop: loop,
 				passing: null,
+				id: Pen.getId()
 			};
 
 			me.twList.push(tw);

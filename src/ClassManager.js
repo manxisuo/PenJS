@@ -55,6 +55,9 @@
 					}
 				}
 
+				// 自动生成ID
+				this.id = Pen.getId();
+				
 				// 将config的属性拷贝到原型 
 				// TODO: 应该拷到原型还是this?
 				Pen.copy(this, config);

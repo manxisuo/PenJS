@@ -93,6 +93,9 @@
 
 		me.addEvents('started', 'paused', 'resumed', 'stopped');
 
+		// 在速度改变时触发
+		me.addEvents('speedUp');
+
 		// 在绘制一帧前触发。
 		me.addEvents('beforeframe');
 
@@ -383,6 +386,7 @@
 		var me = this;
 
 		me.zoom = zoom;
+		me.fireEvent('speedUp', me.zoom);
 	};
 
 	/**
@@ -390,6 +394,7 @@
 	 */
 	Stage.prototype.restoreSpeed = function() {
 		this.zoom = 1;
+		me.fireEvent('speedUp', this.zoom);
 	};
 
 	/**

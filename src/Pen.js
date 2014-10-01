@@ -15,6 +15,17 @@
 	Pen.setConfig = function(config) {
 		this.copy(this.config, config);
 	};
+	
+	/**
+	 * 生成ID。
+	 */
+	Pen.getId = (function() {
+		var id = 0;
+		
+		return function() {
+			return 'gen' + (++id);
+		};
+	})();
 
 	/**
 	 * 将一个对象的属性合并到另一个对象。 注意：不会递归对象的属性，且不会克隆非基本类型的属性。
