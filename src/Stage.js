@@ -9,11 +9,14 @@
 			|| window.webkitCancelAnimationFrame || window.msCancelAnimationFrame
 			|| window.oCancelAnimationFrame || window.clearTimeout
 
-	
 	// 舞台类
 	var Stage = Pen.define('Pen.Stage', {
 		mixins: {
 			event: Pen.EventSource
+		},
+
+		statics: {
+			INTERVAL: 17
 		},
 
 		canvas: null,
@@ -24,6 +27,8 @@
 		clearCanvasFn: null,
 
 		_lastTS: 0,
+
+		inFixedIntervalMode: true,
 
 		zoom: 1,
 
@@ -205,7 +210,7 @@
 	 * 开始动画播放.
 	 */
 	Stage.prototype.start = function() {
-		var me = this;
+		var me = this, self = me.self;
 
 		if (me.status != 'stopped') { return; }
 
@@ -224,7 +229,9 @@
 					dt = timeStamp - me._lastTS;
 
 					// TODO
-					dt = 17;
+					if (me.inFixedIntervalMode) {
+						dt = self.INTERVAL;
+					}
 				}
 				me._lastTS = timeStamp;
 
@@ -275,6 +282,7 @@
 								me.brush.translate(me._transX, me._transY);
 							}
 							cur.draw.call(cur, me.brush, dt);
+							cur.fireEvent('afterdraw');
 						});
 
 						cur.finishedCount++;

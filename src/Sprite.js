@@ -67,6 +67,10 @@
 			// 每次绘制帧前触发。
 			// 在Sprite的beforeDraw和draw方法之间触发。
 			this.addEvents('beforedraw');
+			
+			// 每次绘制帧后触发。
+			// 在Sprite的draw方法之后触发。
+			this.addEvents('afterdraw');
 
 			// 所有帧绘制完毕后触发。
 			this.addEvents('afterstop');

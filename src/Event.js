@@ -42,6 +42,8 @@
 	
 	EventSource.prototype.unbind = function(eventName) {
 		delete this._handlerMap[eventName];
+		
+		return this;
 	};
 
 	EventSource.prototype.fireEvent = function(eventName/* [, arg1, arg2 ...] */) {

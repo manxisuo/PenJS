@@ -99,7 +99,6 @@
 			cls.className = className;
 
 			if (className) {
-				debugger;
 				me._buildNamespace(className, cls);
 			}
 
@@ -119,8 +118,7 @@
 
 			for ( var i = 0; i < len; i++) {
 				name = arr[i];
-				cls = window[name];
-				if (undefined == cls) {
+				if (undefined == scope[name]) {
 					scope[name] = {};
 				}
 
