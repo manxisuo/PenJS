@@ -43,11 +43,11 @@
 				else {
 					var div = document.createElement('div');
 					div.setAttribute('style', 'width:0;height:0;overflow:hidden');
-					document.body.appendChild(div)
+					document.body.appendChild(div);
 
 					span = document.createElement('span');
 					span.setAttribute('class', 'pen-test-size');
-					div.appendChild(span)
+					div.appendChild(span);
 				}
 
 				span.setAttribute('style', 'white-space:nowrap;font:' + font);
@@ -75,7 +75,7 @@
 				}
 
 				return size;
-			}
+			};
 		})(),
 	};
 

@@ -10,7 +10,7 @@
 	Resource.prototype.getReady = function() {
 		this.ready = true;
 		this.loader.resourceIsLoaded();
-	}
+	};
 
 	var Loader = {
 		resources: [],
@@ -66,7 +66,7 @@
 				callback(img);
 			}
 		};
-	}
+	};
 
 	window.Pen.Loader = Loader;
 })(window);

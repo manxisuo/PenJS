@@ -212,7 +212,7 @@
 	Util.recurseObject = (function() {
 		function handle(obj, callback) {
 			for ( var p in obj) {
-				var v = obj[p]
+				var v = obj[p];
 				if (v == undefined || Util.isPrimitive(v)) {
 					callback(obj, p, v);
 				}
@@ -228,7 +228,7 @@
 				handle(obj, callback);
 				callback(null, null, obj);
 			}
-		}
+		};
 	})();
 
 	/**
@@ -264,7 +264,7 @@
 		angle %= 2 * PI;
 
 		if (angle < 0) {
-			angle += 2 * PI
+			angle += 2 * PI;
 		}
 
 		return angle;

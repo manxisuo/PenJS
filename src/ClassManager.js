@@ -104,6 +104,13 @@
 			if (className) {
 				me._buildNamespace(className, cls);
 			}
+			
+			// toString
+//			cls.toString = function() {
+//				var str = this.className + ": " + JSON.stringify(config);
+//				
+//				return str;
+//			};
 
 			return cls;
 		},

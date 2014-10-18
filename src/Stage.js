@@ -7,7 +7,7 @@
 
 	var cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame
 			|| window.webkitCancelAnimationFrame || window.msCancelAnimationFrame
-			|| window.oCancelAnimationFrame || window.clearTimeout
+			|| window.oCancelAnimationFrame || window.clearTimeout;
 
 	// 舞台类
 	var Stage = Pen.define('Pen.Stage', {
@@ -20,6 +20,8 @@
 		},
 
 		canvas: null,
+		
+		// @required
 		brush: null,
 		sprites: [],
 		timerId: -1,
@@ -28,7 +30,7 @@
 
 		_lastTS: 0,
 
-		inFixedIntervalMode: true,
+		inFixedIntervalMode: false,
 
 		zoom: 1,
 
@@ -149,16 +151,28 @@
 			x: me.canvas.width / 2,
 			y: me.canvas.height / 2
 		};
-	}
+	};
 
 	/**
-	 * 增加一个动画.
+	 * 在舞台顶部增加一个动画.
 	 */
 	Stage.prototype.add = function(sprite) {
+		if (sprite) {
+			this.sprites.splice(0, 0, sprite);
+		}
 
-		this.sprites.splice(0, 0, sprite);
+		return this;
+	};
+	
+	/**
+	 * 在舞台底部增加一个动画。
+	 */
+	Stage.prototype.addToBottom = function(sprite) {
+		if (sprite) {
+			this.sprites.push(sprite);
+		}
 
-		return sprite;
+		return this;
 	};
 
 	function checkCompleted(sprite, timeStamp) {
@@ -207,7 +221,7 @@
 			me._transX = 0;
 			me._transY = 0;
 		}
-	}
+	};
 
 	/**
 	 * 开始动画播放.
@@ -226,7 +240,7 @@
 
 				// 计算时间增量
 				if (me._lastTS == 0) {
-					dt = 0
+					dt = 0;
 				}
 				else {
 					dt = timeStamp - me._lastTS;
@@ -336,7 +350,7 @@
 			this.status = 'paused';
 			this.fireEvent('paused');
 		}
-	}
+	};
 
 	/**
 	 * 恢复动画播放。只有在暂停状态时才起作用。
@@ -346,7 +360,7 @@
 			this.status = 'running';
 			this.fireEvent('resumed');
 		}
-	}
+	};
 
 	/**
 	 * 停止动画播放。可通过start重新恢复。
@@ -375,7 +389,9 @@
 				break;
 			}
 		}
-	}
+		
+		return this;
+	};
 
 	/**
 	 * 改变动画的播放速度.
@@ -383,10 +399,10 @@
 	 * @param ratio 变速的比例. 大于1时加速, 小于1时减速, 等于1时速度不变.
 	 */
 	Stage.prototype.speedUp = function(zoom) {
-		var me = this;
-
-		me.zoom = zoom;
-		me.fireEvent('speedUp', me.zoom);
+		if (zoom) {
+			this.zoom = zoom;
+			this.fireEvent('speedUp', this.zoom);
+		}
 	};
 
 	/**
@@ -394,7 +410,7 @@
 	 */
 	Stage.prototype.restoreSpeed = function() {
 		this.zoom = 1;
-		me.fireEvent('speedUp', this.zoom);
+		this.fireEvent('speedUp', this.zoom);
 	};
 
 	/**

@@ -108,7 +108,18 @@
 	/**
 	 * 画圆角矩形。
 	 */
-	Brush.prototype.roundRect = function(x, y, w, h, corners) {
+	Brush.prototype.roundRect = function(x, y, w, h, corner) {
+
+		var corners = corner;
+		if (Pen.Util.isNumber(corner)) {
+			corners = {
+				lt: corner,
+				rt: corner,
+				rb: corner,
+				lb: corner
+			};
+		}
+
 		corners = Pen.copy({
 			lt: 0,
 			rt: 0,
@@ -231,7 +242,7 @@
 			fn.apply(scope || this);
 			this.restore();
 		}
-	}
+	};
 
 	/**
 	 * 清空画布内容.
@@ -376,6 +387,10 @@
 		this.ctx.restore.apply(this.ctx, arguments);
 
 		return this;
+	};
+
+	Brush.prototype.isPointInPath = function(x, y) {
+		return this.ctx.isPointInPath(x, y);
 	};
 
 	/**

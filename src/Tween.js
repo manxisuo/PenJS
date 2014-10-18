@@ -8,6 +8,13 @@
 			var me = this, target = me.target;
 			me.stage = Pen.Global.stage;
 			me.twList = [];
+		},
+
+		/**
+		 * 添加一个缓动动作并立即执行。
+		 */
+		to: function(duration, params) {
+			var me = this, target = me.target;
 
 			if (!me._hasTween(target)) {
 				me.beforeDrawBackup = target.beforeDraw;
@@ -16,10 +23,66 @@
 					for (var i in target._tweenFnList) {
 						target._tweenFnList[i]();
 					}
-				}
+				};
 			}
+			
+			var ease = params.ease || Easing.None.easeIn;
+			delete params.ease;
+
+			var loop = params.loop;
+			delete params.loop;
+
+			var tw = {
+				duration: duration,
+				params: params,
+				startTime: -1,
+				ease: ease,
+				loop: loop,
+				passing: null,
+				id: Pen.getId()
+			};
+
+			me.twList.push(tw);
+
+			// 触发缓动开始
+			if (me.twList.length == 1) {
+				me._handleNext();
+			}
+
+			return me;
+		}, 
+
+		/**
+		 * 等待指定的时间间隔。
+		 */
+		wait: function(duration) {
+			return this.to(duration, {});
 		},
 
+		/**
+		 * 等待指定的时间间隔。
+		 */
+		sleep: function() {
+			return this.to(duration, {});
+		},
+
+		/**
+		 * 等待指定的时间间隔。
+		 */
+		delay: function() {
+			return this.to(duration, {});
+		},
+
+		/**
+		 * 停止当前缓动。
+		 */
+		stop: function() {
+			this._tweenOver();
+		},
+		
+		/**
+		 * 检查指定的Sprite上是否已经存在缓动。
+		 */
 		_hasTween: function(sprite) {
 			if (sprite) {
 				var p;
@@ -31,6 +94,9 @@
 			return false;
 		},
 
+		/**
+		 * 结束当前缓动。
+		 */
 		_tweenOver: function() {
 			var me = this, ns = '.' + me.id, target = me.target;
 
@@ -44,6 +110,9 @@
 			me.stage.unbind(ns);
 		},
 
+		/**
+		 * 处理队列中的下一个动作。
+		 */
 		_handleNext: function() {
 			var me = this, twList = me.twList, target = me.target;
 			var tw = twList[0], ns = '.' + me.id;
@@ -100,51 +169,6 @@
 					target[p] = tw.ease(t, b, c, d);
 				}
 			};
-		},
-
-		stop: function() {
-			this._tweenOver();
-		},
-
-		wait: function(duration) {
-			return this.to(duration, {});
-		},
-
-		sleep: function() {
-			return this.to(duration, {});
-		},
-
-		delay: function() {
-			return this.to(duration, {});
-		},
-
-		to: function(duration, params) {
-			var me = this;
-
-			var ease = params.ease || Easing.None.easeIn;
-			delete params.ease;
-
-			var loop = params.loop;
-			delete params.loop;
-
-			var tw = {
-				duration: duration,
-				params: params,
-				startTime: -1,
-				ease: ease,
-				loop: loop,
-				passing: null,
-				id: Pen.getId()
-			};
-
-			me.twList.push(tw);
-
-			// 触发缓动开始
-			if (me.twList.length == 1) {
-				me._handleNext();
-			}
-
-			return me;
 		}
 	});
 

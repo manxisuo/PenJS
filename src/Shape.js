@@ -27,7 +27,9 @@
 		},
 
 		/**
-		 * 如果设置了corner，则覆盖corners的设置。只在实例化时起作用。
+		 * 如果设置了corner，则覆盖corners的设置。
+		 * 注意：只在实例化时起作用。
+		 * 
 		 * @type Number(v >= 0)
 		 */
 		corner: undefined,
@@ -115,31 +117,38 @@
 
 		checkInside: function(px, py) {
 			var me = this;
-			var x = me.x, y = me.y, w = me.w, h = me.h;
-			var lt = me.corners.lt, rt = me.corners.rt;
-			var rb = me.corners.rb, lb = me.corners.lb;
-			var PI = Math.PI;
+			brush.roundRect(me.x, me.y, me.w, me.h, me.corners);
+			return brush.isPointInPath(px, py);
+		},
 
-			var x$p = px - x, y$p = py - y;
-			var x$lt = -w / 2 + lt, y$lt = -h / 2 + lt;
-			var x$rt = w / 2 - rt, y$rt = -h / 2 + rt;
-			var x$rb = w / 2 - rb, y$rb = h / 2 - rb;
-			var x$lb = -w / 2 + lb, y$lb = h / 2 - lb;
+	/*
+	checkInside: function(px, py) {
+		var me = this;
+		var x = me.x, y = me.y, w = me.w, h = me.h;
+		var lt = me.corners.lt, rt = me.corners.rt;
+		var rb = me.corners.rb, lb = me.corners.lb;
+		var PI = Math.PI;
 
-			var chk1 = Pen.Util.isDotInFan(x$p, y$p, x$lt, y$lt, lt, -PI, -PI / 2, true);
-			var chk2 = Pen.Util.isDotInFan(x$p, y$p, x$rt, y$rt, rt, -PI / 2, 0, true);
-			var chk3 = Pen.Util.isDotInFan(x$p, y$p, x$rb, y$rb, rb, 0, PI / 2, true);
-			var chk4 = Pen.Util.isDotInFan(x$p, y$p, x$lb, y$lb, lb, PI / 2, PI, true);
+		var x$p = px - x, y$p = py - y;
+		var x$lt = -w / 2 + lt, y$lt = -h / 2 + lt;
+		var x$rt = w / 2 - rt, y$rt = -h / 2 + rt;
+		var x$rb = w / 2 - rb, y$rb = h / 2 - rb;
+		var x$lb = -w / 2 + lb, y$lb = h / 2 - lb;
 
-			var chk11 = Pen.Util.isDotInRect(x$p, y$p, x$lt / 2, y$lt / 2, lt, lt, true);
-			var chk21 = Pen.Util.isDotInRect(x$p, y$p, x$rt / 2, y$rt / 2, rt, rt, true);
-			var chk31 = Pen.Util.isDotInRect(x$p, y$p, x$rb / 2, y$rb / 2, rb, rb, true);
-			var chk41 = Pen.Util.isDotInRect(x$p, y$p, x$lb / 2, y$lb / 2, lb, lb, true);
+		var chk1 = Pen.Util.isDotInFan(x$p, y$p, x$lt, y$lt, lt, -PI, -PI / 2, true);
+		var chk2 = Pen.Util.isDotInFan(x$p, y$p, x$rt, y$rt, rt, -PI / 2, 0, true);
+		var chk3 = Pen.Util.isDotInFan(x$p, y$p, x$rb, y$rb, rb, 0, PI / 2, true);
+		var chk4 = Pen.Util.isDotInFan(x$p, y$p, x$lb, y$lb, lb, PI / 2, PI, true);
 
-			var chk = Pen.Util.isDotInRect(x$p, y$p, 0, 0, w, h, true);
+		var chk11 = Pen.Util.isDotInRect(x$p, y$p, x$lt / 2, y$lt / 2, lt, lt, true);
+		var chk21 = Pen.Util.isDotInRect(x$p, y$p, x$rt / 2, y$rt / 2, rt, rt, true);
+		var chk31 = Pen.Util.isDotInRect(x$p, y$p, x$rb / 2, y$rb / 2, rb, rb, true);
+		var chk41 = Pen.Util.isDotInRect(x$p, y$p, x$lb / 2, y$lb / 2, lb, lb, true);
 
-			return (chk && !chk11 & !chk21 & !chk31 & !chk41) || chk1 || chk2 || chk3 || chk4;
-		}
+		var chk = Pen.Util.isDotInRect(x$p, y$p, 0, 0, w, h, true);
+
+		return (chk && !chk11 & !chk21 & !chk31 & !chk41) || chk1 || chk2 || chk3 || chk4;
+	} */
 	});
 
 	/**

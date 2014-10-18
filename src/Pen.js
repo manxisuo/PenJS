@@ -121,7 +121,7 @@
 			brush: brush,
 			stage: stage
 		});
-	}
+	};
 
 	Pen.Global = {};
 

@@ -97,7 +97,7 @@
 
 	EventSource.prototype.off = function() {
 		return this.unbind.apply(arguments);
-	}
+	};
 
 	EventSource.prototype.fireEvent = function(eventName/* [, arg1, arg2 ...] */) {
 		var handlers = [];
