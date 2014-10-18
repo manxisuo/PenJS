@@ -108,24 +108,13 @@
 	/**
 	 * 画圆角矩形。
 	 */
-	Brush.prototype.roundRect = function(x, y, w, h, corner) {
-
-		var corners = corner;
-		if (Pen.Util.isNumber(corner)) {
-			corners = {
-				lt: corner,
-				rt: corner,
-				rb: corner,
-				lb: corner
-			};
+	Brush.prototype.roundRect = function(x, y, w, h, corners) {
+		if (undefined == corners) {
+			corners = [0, 0, 0, 0];
 		}
-
-		corners = Pen.copy({
-			lt: 0,
-			rt: 0,
-			rb: 0,
-			lb: 0
-		}, corners);
+		else if (!Pen.Util.isArray(corners)) {
+			corners = [corners, corners, corners, corners];
+		}
 
 		var size = Pen.Util.min(w / 2, h / 2);
 
@@ -135,7 +124,7 @@
 			}
 		}
 
-		var lt = corners.lt, rt = corners.rt, rb = corners.rb, lb = corners.lb;
+		var lt = corners[0], rt = corners[1], rb = corners[2], lb = corners[3];
 		var PI = Math.PI;
 
 		ctx.save();

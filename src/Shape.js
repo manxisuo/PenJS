@@ -18,21 +18,8 @@
 		w: 50,
 		h: 30,
 
-		// 四个角的半径。lt：左上；rt：右上；rb：右下；lb：左下。
-		corners: {
-			lt: 5,
-			rt: 5,
-			rb: 5,
-			lb: 5
-		},
-
-		/**
-		 * 如果设置了corner，则覆盖corners的设置。
-		 * 注意：只在实例化时起作用。
-		 * 
-		 * @type Number(v >= 0)
-		 */
-		corner: undefined,
+		// 四个角的半径。可以是数字(四个角的半径相同)或数组(依次为左上、右上、右下、左下的角的半径)。
+		corners: [5, 5, 5, 5],
 
 		// 填充色和边框色
 		fillColor: null,
@@ -51,17 +38,6 @@
 		init: function() {
 			var me = this;
 			me.callParent('init');
-
-			// 初始化圆角的半径
-			if (me.corner !== undefined) {
-				var c = me.corner;
-				me.corners = {
-					lt: c,
-					rt: c,
-					rb: c,
-					lb: c
-				};
-			}
 
 			// 初始化填充色和边框色
 			me.fillColor = me.self.FILL_COLOR;
@@ -88,7 +64,7 @@
 			var me = this, text = me.text, div = me._textDiv, cs = me.corners;
 
 			if (text && Pen.Util.trim(text)) {
-				var padding = Pen.Util.max(cs.lt, cs.rt, cs.rb, cs.lb);
+				var padding = Pen.Util.isNumber(cs) ? cs : Pen.Util.maxArrayItem(cs);
 				div.css({
 					padding: padding + 'px',
 					left: me.x - me.w / 2 + padding + 'px',
@@ -120,35 +96,6 @@
 			brush.roundRect(me.x, me.y, me.w, me.h, me.corners);
 			return brush.isPointInPath(px, py);
 		},
-
-	/*
-	checkInside: function(px, py) {
-		var me = this;
-		var x = me.x, y = me.y, w = me.w, h = me.h;
-		var lt = me.corners.lt, rt = me.corners.rt;
-		var rb = me.corners.rb, lb = me.corners.lb;
-		var PI = Math.PI;
-
-		var x$p = px - x, y$p = py - y;
-		var x$lt = -w / 2 + lt, y$lt = -h / 2 + lt;
-		var x$rt = w / 2 - rt, y$rt = -h / 2 + rt;
-		var x$rb = w / 2 - rb, y$rb = h / 2 - rb;
-		var x$lb = -w / 2 + lb, y$lb = h / 2 - lb;
-
-		var chk1 = Pen.Util.isDotInFan(x$p, y$p, x$lt, y$lt, lt, -PI, -PI / 2, true);
-		var chk2 = Pen.Util.isDotInFan(x$p, y$p, x$rt, y$rt, rt, -PI / 2, 0, true);
-		var chk3 = Pen.Util.isDotInFan(x$p, y$p, x$rb, y$rb, rb, 0, PI / 2, true);
-		var chk4 = Pen.Util.isDotInFan(x$p, y$p, x$lb, y$lb, lb, PI / 2, PI, true);
-
-		var chk11 = Pen.Util.isDotInRect(x$p, y$p, x$lt / 2, y$lt / 2, lt, lt, true);
-		var chk21 = Pen.Util.isDotInRect(x$p, y$p, x$rt / 2, y$rt / 2, rt, rt, true);
-		var chk31 = Pen.Util.isDotInRect(x$p, y$p, x$rb / 2, y$rb / 2, rb, rb, true);
-		var chk41 = Pen.Util.isDotInRect(x$p, y$p, x$lb / 2, y$lb / 2, lb, lb, true);
-
-		var chk = Pen.Util.isDotInRect(x$p, y$p, 0, 0, w, h, true);
-
-		return (chk && !chk11 & !chk21 & !chk31 & !chk41) || chk1 || chk2 || chk3 || chk4;
-	} */
 	});
 
 	/**

@@ -30,8 +30,8 @@
 		y: 50,
 		w: 50,
 		h: 30,
-
-		roundRect: null,
+		corners: 5,
+		box: null,
 
 		fixed: true,
 		stoppable: false,
@@ -44,14 +44,7 @@
 
 			me.callParent('init');
 
-			me.roundRect = new Pen.RoundRect({
-				corners: {
-					lt: 5,
-					rt: 5,
-					rb: 5,
-					lb: 5
-				}
-			});
+			me.box = new Pen.RoundRect();
 
 			me.FILL_COLOR.NORMAL = brush.createGradient(0, 0, 0, this.h).addStop({
 				0: '#FFFFFF',
@@ -102,21 +95,22 @@
 		},
 		draw: function(brush, dt) {
 			var me = this;
-			Pen.copy(me.roundRect, {
+			Pen.copy(me.box, {
 				x: me.x,
 				y: me.y,
 				w: me.w,
 				h: me.h,
+				corners: me.corners,
 				fillColor: me.fillColor,
 				borderColor: me.borderColor
 			});
-			me.roundRect.draw(brush, dt);
+			me.box.draw(brush, dt);
 
 			brush.fillTextWithColor(me.text, me.x, me.y, me.fontColor, me.font);
 		},
 		checkInside: function(ex, ey) {
 			var me = this;
-			return me.roundRect.checkInside(ex, ey);
+			return me.box.checkInside(ex, ey);
 		}
 	});
 })(window);
