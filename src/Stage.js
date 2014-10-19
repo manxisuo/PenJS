@@ -26,7 +26,6 @@
 		sprites: [],
 		timerId: -1,
 		status: 'stopped', // 'stopped', 'paused', 'running'
-		clearCanvasFn: null,
 
 		_lastTS: 0,
 
@@ -41,6 +40,9 @@
 
 		// 事件
 		_lastMoveTime: null,
+		
+		// 在绘制帧前，是否自动清除画布。
+		autoClear: true,
 
 		init: _init
 	});
@@ -142,6 +144,12 @@
 		me.canvas.addEventListener('keyup', function(e) {
 			_dispatchKeyEvent(me, e);
 		}, false);
+		
+		me._on('beforeframe', function() {
+			if (me.autoClear) {
+				me.brush.clear();
+			}
+		});
 	}
 
 	Stage.prototype._initTrackConfig = function() {

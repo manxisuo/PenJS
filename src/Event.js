@@ -10,7 +10,7 @@
 	Event.TYPE1 = /^\w+\.\w+$/;
 	Event.TYPE2 = /^\w+$/;
 	Event.TYPE3 = /^\.\w+$/;
-
+	
 	/**
 	 * 事件源。
 	 */
@@ -27,6 +27,8 @@
 		 *	}
 		 */
 		this._handlerMap = {};
+		
+		this._internalHandlerMap = {};
 	};
 
 	EventSource.prototype.addEvents = function(/* eventNames */) {
@@ -44,6 +46,28 @@
 		return this;
 	};
 
+	/**
+	 * 内部使用。
+	 * @private
+	 */
+	EventSource.prototype._on = function(/* event1, [event2, ..., eventN,]  handler */) {
+		// 检查事件源是否支持指定的事件
+		var i, event;
+		var len = arguments.length, handler = arguments[len - 1];
+		for (i in arguments) {
+			event = arguments[i];
+			if (typeof event == 'string') {
+				if (this.events.indexOf(event.split(/\./)[0]) != -1) {
+					var handlers = this._handlerMap[event] || [];
+					handlers.push(handler);
+					this._internalHandlerMap[event] = handlers;
+				}
+			}
+		}
+
+		return this;
+	};
+	
 	EventSource.prototype.on = function(/* event1, [event2, ..., eventN,]  handler */) {
 		// 检查事件源是否支持指定的事件
 		var i, event;
@@ -61,7 +85,7 @@
 
 		return this;
 	};
-
+	
 	EventSource.prototype.unbind = function(/* event1[, event2, ..., eventN]*/) {
 		var i, event, handlerMap = this._handlerMap;
 		var p;
@@ -99,12 +123,20 @@
 		return this.unbind.apply(arguments);
 	};
 
+	/**
+	 * 触发事件。
+	 */
 	EventSource.prototype.fireEvent = function(eventName/* [, arg1, arg2 ...] */) {
 		var handlers = [];
-		var p, handerMap = this._handlerMap;
+		var p, handerMap = this._handlerMap, internalHandlerMap = this._internalHandlerMap;
 		for (p in handerMap) {
 			if (p.split('.')[0] == eventName) {
 				handlers = handlers.concat(handerMap[p]);
+			}
+		}
+		for (p in internalHandlerMap) {
+			if (p.split('.')[0] == eventName) {
+				handlers = handlers.concat(internalHandlerMap[p]);
 			}
 		}
 

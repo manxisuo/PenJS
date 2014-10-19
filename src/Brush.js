@@ -1,6 +1,12 @@
 (function(window) {
 
 	var Brush = Pen.define('Pen.Brush', {
+		
+		/**
+		 * 画布。
+		 * 
+		 * @required
+		 */
 		canvas: null,
 
 		init: function() {

@@ -126,4 +126,5 @@
 	Pen.Global = {};
 
 	window.Pen = Pen;
+	window.$P = Pen;
 })(window);

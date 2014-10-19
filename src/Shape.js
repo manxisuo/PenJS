@@ -1,4 +1,4 @@
-(function(window) {
+(function(window, Pen) {
 	/**
 	 * 形状。
 	 */
@@ -145,4 +145,4 @@
 			});
 		}
 	});
-})(window);
+})(window, Pen);
