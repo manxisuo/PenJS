@@ -20,7 +20,7 @@
 		},
 
 		canvas: null,
-		
+
 		// @required
 		brush: null,
 		sprites: [],
@@ -40,7 +40,7 @@
 
 		// 事件
 		_lastMoveTime: null,
-		
+
 		// 在绘制帧前，是否自动清除画布。
 		autoClear: true,
 
@@ -144,7 +144,7 @@
 		me.canvas.addEventListener('keyup', function(e) {
 			_dispatchKeyEvent(me, e);
 		}, false);
-		
+
 		me._on('beforeframe', function() {
 			if (me.autoClear) {
 				me.brush.clear();
@@ -166,23 +166,75 @@
 	 */
 	Stage.prototype.add = function(sprite) {
 		if (sprite) {
+			sprite.stage = this;
+			sprite.brush = this.brush;
 			this.sprites.splice(0, 0, sprite);
+		}
+
+		return this;
+	};
+
+	/**
+	 * 在舞台底部增加一个动画。
+	 */
+	Stage.prototype.addToBottom = function(sprite) {
+		if (sprite) {
+			sprite.stage = this;
+			sprite.brush = this.brush;
+			this.sprites.push(sprite);
 		}
 
 		return this;
 	};
 	
 	/**
-	 * 在舞台底部增加一个动画。
+	 * 生成一个Sprite对象。
+	 * @param spriteClass Sprite的类或类名
+	 * @param config 初始化配置
 	 */
-	Stage.prototype.addToBottom = function(sprite) {
-		if (sprite) {
-			this.sprites.push(sprite);
+	Stage.prototype.make = function(spriteClass, config) {
+		var me = this;
+		
+		if (Pen.Util.isString(spriteClass)) {
+			spriteClass = Pen.ClassManager.classes[spriteClass];
 		}
-
-		return this;
+		
+		if (spriteClass === Pen.Sprite || spriteClass.prototype instanceof Pen.Sprite) {
+			return new spriteClass(Pen.copy({
+				stage: me
+			}, config));
+		}
+		else {
+			return null;
+		}
 	};
-
+	
+	Stage.prototype.isSpriteAdded = function(sprite) {
+		var sprites = this.sprites;
+		for (i in sprites) {
+			if (sprites[i] == sprite) {
+				return true;
+			}
+		}
+		
+		return false;
+	};
+	
+	Stage.prototype.getTween = function(targetSprite) {
+		var me = this;
+		
+		if (!me.isSpriteAdded(targetSprite)) {
+			me.add(targetSprite);
+		}
+		
+		var tween = new Pen.Tween({
+			stage: me,
+			target: targetSprite
+		});
+		
+		return tween;
+	};
+	
 	function checkCompleted(sprite, timeStamp) {
 		if (null == sprite)
 			return true;
@@ -213,7 +265,7 @@
 		var track = (me._track != null);
 
 		if (track) {
-			me._track.beforeDraw.call(me._track, dt);
+			me._track.beforeDraw(dt);
 
 			me._transX = -me._track.x + me._trackConfig.x;
 			me._transY = -me._track.y + me._trackConfig.y;
@@ -264,57 +316,7 @@
 				dt *= me.zoom;
 				dt = Math.round(dt);
 
-				me.fireEvent('beforeframe');
-
-				// 渲染所有动画.
-				// 为了能够在循环中删除元素, 所以采用了逆序循环. 而添加元素时, 是放到数组开始的.
-				// 这样一来, 最后添加的动画将会位于顶层.
-				var sprites = me.sprites;
-				var cur;
-				me._doTrack(dt);
-
-				for ( var i = sprites.length - 1; i >= 0; i--) {
-					cur = sprites[i];
-
-					// 计时
-					if (cur.finishedCount == 0) {
-						cur.startTime = timeStamp;
-					}
-
-					// 判断是否结束
-					if (checkCompleted(cur, timeStamp)) {
-
-						// TODO 如果追踪的Sprite停止播放了该怎么处理?
-						if (cur == me._track) {
-							me.stopTrack();
-						}
-
-						cur.fireEvent('afterstop');
-
-						sprites.splice(i, 1);
-
-						continue;
-					}
-					else {
-						if (cur.beforeDraw && cur != me._track) {
-							cur.beforeDraw.call(cur, dt);
-						}
-
-						cur.fireEvent('beforedraw');
-
-						me.brush.tmp(function() {
-							if (!cur.fixed) {
-								me.brush.translate(me._transX, me._transY);
-							}
-							cur.draw.call(cur, me.brush, dt);
-							cur.fireEvent('afterdraw');
-						});
-
-						cur.finishedCount++;
-					}
-				}
-
-				me.fireEvent('afterframe');
+				me._drawFrame(dt, timeStamp);
 			}
 
 			me.timerId = requestAnimationFrame(loop);
@@ -324,6 +326,69 @@
 
 		me.status = 'running';
 		me.fireEvent('started');
+	};
+
+	/**
+	 * 渲染所有动画。
+	 * 为了能够在循环中删除元素，所以采用了逆序循环。而添加元素时，是放到数组开始的。这样一来，最后添加的动画将会位于顶层。
+	 * 
+	 * 
+	 * @param dt 当前帧与上一帧的时间间隔
+	 * @param timeStamp 时间戳。由requestAnimationFrame产生的。
+	 */
+	Stage.prototype._drawFrame = function(dt, timeStamp) {
+		var me = this;
+
+		me.fireEvent('beforeframe');
+
+		var sprites = me.sprites;
+		var cur;
+
+		me._doTrack(dt);
+
+		for ( var i = sprites.length - 1; i >= 0; i--) {
+			cur = sprites[i];
+
+			// 计时
+			if (cur.finishedCount == 0) {
+				cur.startTime = timeStamp;
+			}
+
+			// 判断是否结束
+			if (checkCompleted(cur, timeStamp)) {
+
+				// TODO 如果追踪的Sprite停止播放了该怎么处理?
+				if (cur == me._track) {
+					me.stopTrack();
+				}
+
+				cur.fireEvent('afterstop');
+
+				sprites.splice(i, 1);
+
+				continue;
+			}
+			else {
+				if (cur.beforeDraw && cur != me._track) {
+					cur.beforeDraw(dt);
+				}
+
+				cur.fireEvent('beforedraw');
+
+				me.brush.tmp(function() {
+					if (!cur.fixed) {
+						me.brush.translate(me._transX, me._transY);
+					}
+					cur.draw(me.brush, dt);
+				});
+				
+				cur.fireEvent('afterdraw');
+
+				cur.finishedCount++;
+			}
+		}
+
+		me.fireEvent('afterframe');
 	};
 
 	/**
@@ -397,7 +462,7 @@
 				break;
 			}
 		}
-		
+
 		return this;
 	};
 

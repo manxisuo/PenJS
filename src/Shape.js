@@ -56,7 +56,7 @@
 			Pen.copy(css, me.textStyle);
 			div.css(css);
 			div.addClass('pen-shape-text');
-			div.appendTo($(Pen.Global.canvas).parent());
+			div.appendTo($(me.stage.canvas).parent());
 			me._textDiv = div;
 		},
 
@@ -92,7 +92,7 @@
 		},
 
 		checkInside: function(px, py) {
-			var me = this;
+			var me = this, brush = me.stage.brush;
 			brush.roundRect(me.x, me.y, me.w, me.h, me.corners);
 			return brush.isPointInPath(px, py);
 		},

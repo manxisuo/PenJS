@@ -1,12 +1,16 @@
 (function(window) {
 	Pen.define('Pen.Tween', {
+		
+		//@required
 		stage: null,
+		
+		//@required
 		target: null,
+		
 		beforeDrawBackup: null,
 		twList: null,
 		init: function() {
 			var me = this, target = me.target;
-			me.stage = Pen.Global.stage;
 			me.twList = [];
 		},
 

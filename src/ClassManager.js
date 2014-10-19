@@ -10,6 +10,11 @@
 
 	var ClassManager = {
 		/**
+		 * 通过define方法定义的类列表。
+		 */
+		classes: {},
+			
+		/**
 		 * 定义类。 说明： config是一个对象。
 		 * 特殊的属性包括：extend、init、mixins。其中：
 		 *  extend是父类。
@@ -111,7 +116,12 @@
 //				
 //				return str;
 //			};
-
+			
+			// 加入列表
+			if ('' !== className) {
+				this.classes[className] = cls;
+			}
+			
 			return cls;
 		},
 

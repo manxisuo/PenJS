@@ -16,6 +16,9 @@
 		},
 
 		name: '',
+		
+		// Sprite所属的舞台
+		stage: null,
 
 		// 动画类型相关参数
 		type: 1,

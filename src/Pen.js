@@ -1,11 +1,13 @@
 (function(window) {
 	var Pen = Pen || {};
 
-	var scriptList = ['Util.js', 'Loader.js', 'ClassManager.js.js', 'Event.js', 'Stage.js',
-			'Sprite.js', 'Storage.js', 'Brush.js'];
+	Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js',
+			'Stage.js', 'Sprite.js', 'Component.js', 'Shape.js', 'Storage.js', 'Brush.js',
+			'Tween.js'];
 
 	Pen.config = {
-		root: ''
+		root: '',
+		canvas: null,
 	};
 
 	// TODO
@@ -15,13 +17,13 @@
 	Pen.setConfig = function(config) {
 		this.copy(this.config, config);
 	};
-	
+
 	/**
 	 * 生成ID。
 	 */
 	Pen.getId = (function() {
 		var id = 0;
-		
+
 		return function() {
 			return 'gen' + (++id);
 		};
@@ -95,31 +97,97 @@
 	}
 
 	/**
+	 * 并行地加载所有脚本。
+	 */
+	Pen._loadAllJsParallelly = function(oncomplete) {
+		var me = this;
+		var root = me.config.root;
+		var list = me._scriptList, len = list.length, count = 0;
+		var i, script;
+
+		for (i in list) {
+			script = list[i];
+
+			(function(script) {
+				me.loadJS(getFullPath(root, script), function() {
+					count++;
+					if (count == len) {
+						if (oncomplete) {
+							oncomplete();
+						}
+					}
+				});
+			})(script);
+		}
+	};
+
+	/**
+	 * 串行地加载所有脚本。
+	 */
+	Pen._loadAllJsSerially = function(oncomplete) {
+		var me = this;
+		var root = me.config.root;
+		var list = me._scriptList, len = list.length, count = 0;
+		var i, script;
+
+		var l = [];
+		for (i in list) {
+			script = list[i];
+			(function(script) {
+				l.push(function() {
+					me.loadJS(getFullPath(root, script), function() {
+						l.shift();
+						if (l.length > 0) {
+							l[0]();
+						}
+						else {
+							if (oncomplete) {
+								oncomplete();
+							}
+						}
+					});
+				});
+			})(script);
+		}
+
+		if (l.length > 0) {
+			l[0]();
+		}
+	};
+	
+	/**
+	 * 根据实际需要加载所有脚本。
+	 * TODO
+	 */
+	Pen._loadAllJsAsRequired = function(oncomplete) {
+	};
+
+	/**
 	 * 初始化Pen JS。
 	 */
-	Pen.init = function(canvas) {
-		// var me = this;
-		// me.loadJS(getFullPath(me.config.root, 'Util.js'), function() {
-		// for ( var i in scriptList) {
-		// me.loadJS(getFullPath(me.config.root, scriptList[i]));
-		// }
-		// });
+	Pen.init = function(callback) {
+		var me = this;
+		me._loadAllJsSerially(function() {
+			var canvas = me.config.canvas;
+			var ctx, brush, stage;
+			ctx = canvas.getContext('2d');
+			brush = new Pen.Brush({
+				canvas: canvas
+			});
+			stage = new Pen.Stage({
+				brush: brush,
+			});
 
-		var ctx, brush, stage;
+			Pen.copy(Pen.Global, {
+				canvas: canvas,
+				ctx: ctx,
+				brush: brush,
+				stage: stage
+			});
 
-		ctx = canvas.getContext('2d');
-		brush = new Pen.Brush({
-			canvas: canvas
-		});
-		stage = new Pen.Stage({
-			brush: brush,
-		});
-
-		Pen.copy(Pen.Global, {
-			canvas: canvas,
-			ctx: ctx,
-			brush: brush,
-			stage: stage
+			if (callback) {
+				callback();
+			}
 		});
 	};
 

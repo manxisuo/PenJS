@@ -40,11 +40,13 @@
 
 		init: function() {
 			var me = this;
-			var brush = Pen.Global.stage.brush;
+			var brush = me.stage.brush;
 
 			me.callParent('init');
 
-			me.box = new Pen.RoundRect();
+			me.box = new Pen.RoundRect({
+				stage: me.stage
+			});
 
 			me.FILL_COLOR.NORMAL = brush.createGradient(0, 0, 0, this.h).addStop({
 				0: '#FFFFFF',
@@ -70,16 +72,16 @@
 			me.on('mouseenter', function(e) {
 				me.fillColor = me.FILL_COLOR.HOVER;
 				me.borderColor = me.BORDER_COLOR.HOVER;
-				me._backupCursor = Pen.Global.stage.canvas.style.cursor;
+				me._backupCursor = me.stage.canvas.style.cursor;
 
-				Pen.Global.stage.canvas.style.cursor = 'pointer';
+				me.stage.canvas.style.cursor = 'pointer';
 			});
 
 			me.on('mouseleave', function(e) {
 				me.fillColor = me.FILL_COLOR.NORMAL;
 				me.borderColor = me.BORDER_COLOR.NORMAL;
 
-				Pen.Global.stage.canvas.style.cursor = me._backupCursor;
+				me.stage.canvas.style.cursor = me._backupCursor;
 			});
 
 			me.on('mousedown', function() {
