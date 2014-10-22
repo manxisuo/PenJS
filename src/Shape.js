@@ -37,13 +37,19 @@
 
 		init: function() {
 			var me = this;
-			me.callParent('init');
 
 			// 初始化填充色和边框色
 			me.fillColor = me.self.FILL_COLOR;
 			me.borderColor = me.self.BORDER_COLOR;
 
 			// 初始化文本
+			if (me.text != null && me.text !== '') {
+				me._initText();
+			}
+		},
+		
+		_initText: function() {
+			var me = this;
 			var div = $('<div />');
 			var css = {
 				'postion': 'absolute',
@@ -61,7 +67,13 @@
 		},
 
 		_drawText: function() {
-			var me = this, text = me.text, div = me._textDiv, cs = me.corners;
+			var me = this;
+			
+			if (me._textDiv == null) {
+				me._initText();
+			}
+			
+			var text = me.text, div = me._textDiv, cs = me.corners;
 
 			if (text && Pen.Util.trim(text)) {
 				var padding = Pen.Util.isNumber(cs) ? cs : Pen.Util.maxArrayItem(cs);
@@ -94,6 +106,7 @@
 		checkInside: function(px, py) {
 			var me = this, brush = me.stage.brush;
 			brush.roundRect(me.x, me.y, me.w, me.h, me.corners);
+			
 			return brush.isPointInPath(px, py);
 		},
 	});

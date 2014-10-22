@@ -42,8 +42,6 @@
 			var me = this;
 			var brush = me.stage.brush;
 
-			me.callParent('init');
-
 			me.box = new Pen.RoundRect({
 				stage: me.stage
 			});

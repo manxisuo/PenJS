@@ -62,14 +62,25 @@
 	};
 
 	/**
-	 * 返回整数min和整数max之间的某个随机整数. 包括min, 不包括max.
+	 * 返回指定范围内的一个随机数。
+	 * 包括start，不包括end。
 	 */
-	Util.rndRange = function(min, max) {
-		return Math.floor(Math.random() * (max - min)) + min;
+	Util.rndRange = function(start, end) {
+		return Math.random() * (end - start) + start;
 	};
 
-	Util.rndAmong = function() {
-		var index = this.rndRange(0, arguments.length);
+	/**
+	 * 返回整数min和整数max之间的某个随机整数. 包括min和max.
+	 */
+	Util.rndBetween = function(min, max) {
+		return Math.floor(Math.random() * (max - min + 1)) + min;
+	};
+
+	/**
+	 * 返回指定的N个参数(类型任意)中的某一个。
+	 */
+	Util.rndAmong = function(/* a1, a2, a3... */) {
+		var index = this.rndBetween(0, arguments.length - 1);
 		return arguments[index];
 	};
 
@@ -77,9 +88,9 @@
 	 * 生成一个随机RGB颜色值。 例如："rgb(132, 75, 44)"
 	 */
 	Util.rndRGB = function() {
-		var r = this.rndRange(0, 256);
-		var g = this.rndRange(0, 256);
-		var b = this.rndRange(0, 256);
+		var r = this.rndBetween(0, 256);
+		var g = this.rndBetween(0, 256);
+		var b = this.rndBetween(0, 256);
 
 		return 'rgb(' + r + ', ' + g + ', ' + b + ')';
 	};
@@ -118,18 +129,26 @@
 	 * 
 	 * @param array 数组
 	 * @param value 待删除的元素
+	 * @param isGlobal true时，删除所有匹配的元素；否则，只删除第一个匹配的。
 	 */
-	Util.removeArrayItem = function(array, value) {
-		var index;
+	Util.removeArrayItem = function(array, value, isGlobal) {
+		var indexList = [];
 		array.every(function(v, idx) {
 			if (v == value) {
-				index = idx;
+				indexList.splice(0, 0, idx);
 
-				return false;
+				if (isGlobal !== true) {
+					return false;
+				}
 			}
 			return true;
 		});
-		array.splice(index, 1);
+		
+		indexList.forEach(function(index) {
+			array.splice(index, 1);
+		});
+		
+		return indexList.length > 0;
 	};
 
 	/**
@@ -194,7 +213,7 @@
 	Util.isFunction = function(v) {
 		return typeof v == 'function';
 	};
-	
+
 	Util.isString = function(v) {
 		return typeof v == 'string';
 	};
@@ -333,6 +352,10 @@
 		else {
 			return str;
 		}
+	};
+
+	Util.isMobile = function() {
+		return window.ontouchstart !== undefined;
 	};
 
 	window.Pen.Util = Util;

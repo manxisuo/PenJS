@@ -2,7 +2,7 @@
 	var Pen = Pen || {};
 
 	Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js',
-			'Stage.js', 'Sprite.js', 'Component.js', 'Shape.js', 'Storage.js', 'Brush.js',
+			'Stage.js', 'Sprite.js', 'Component.js', 'Shape.js', 'Sprites.js', 'Storage.js', 'Brush.js',
 			'Tween.js'];
 
 	Pen.config = {

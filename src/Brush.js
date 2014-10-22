@@ -1,7 +1,7 @@
 (function(window) {
 
 	var Brush = Pen.define('Pen.Brush', {
-		
+
 		/**
 		 * 画布。
 		 * 
@@ -54,24 +54,26 @@
 	 * 描边当前路径(中的所有子路径)。
 	 */
 	Brush.prototype.stroke = function(style) {
-		this.tmp(function() {
-			this.setStrokeStyle(style);
-			this.ctx.stroke();
+		var me = this;
+		me.tmp(function() {
+			me.setStrokeStyle(style);
+			me.ctx.stroke();
 		});
 
-		return this;
+		return me;
 	};
 
 	/**
 	 * 填充当前路径(中的所有子路径)。
 	 */
 	Brush.prototype.fill = function(style) {
-		this.tmp(function() {
-			this.setFillStyle(style);
-			this.ctx.fill();
+		var me = this;
+		me.tmp(function() {
+			me.setFillStyle(style);
+			me.ctx.fill();
 		});
 
-		return this;
+		return me;
 	};
 
 	/**
@@ -132,6 +134,7 @@
 
 		var lt = corners[0], rt = corners[1], rb = corners[2], lb = corners[3];
 		var PI = Math.PI;
+		var ctx = this.ctx;
 
 		ctx.save();
 		ctx.translate(x, y);
@@ -232,23 +235,26 @@
 	 * 备份上下文状态，并执行一个函数，然后还原上下文状态。
 	 */
 	Brush.prototype.tmp = function(fn, scope) {
+		var me = this, r = null;
 		if (fn) {
-			this.save();
-			fn.apply(scope || this);
-			this.restore();
+			me.save();
+			r = fn.apply(scope || window);
+			me.restore();
 		}
+		
+		return r;
 	};
 
 	/**
 	 * 清空画布内容.
 	 */
 	Brush.prototype.clear = function(style) {
-		var ctx = this.ctx;
+		var me = this, ctx = me.ctx;
 
 		if (style) {
-			this.tmp(function() {
+			me.tmp(function() {
 				ctx.fillStyle = style;
-				ctx.rect(0, 0, this.canvas.width, this.canvas.height);
+				ctx.rect(0, 0, me.canvas.width, me.canvas.height);
 				ctx.fill();
 			});
 		}
@@ -300,19 +306,17 @@
 	};
 
 	/**
-	 * 画图. image, x, y是必选的. rotate是可选的. width和height要么同时提供, 要么同时不提供. 注意:
-	 * x和y不是图片左上角的坐标, 是图片中心的坐标.
+	 * 画图。
+	 * image，x，y是必选的；width和height要么同时提供，要么同时不提供。
+	 * 注意：x和y不是图片左上角的坐标，是图片中心的坐标。
 	 */
-	Brush.prototype.image = function(image, x, y, width, height, rotate) {
+	Brush.prototype.image = function(image, x, y, width, height) {
 		var ctx = this.ctx;
 		var len = arguments.length;
 		var w;
 		var h;
-		var angle = 0;
 
-		ctx.save();
-
-		if (len == 3 || len == 4) {
+		if (len == 3) {
 			w = image.width;
 			h = image.height;
 		}
@@ -321,17 +325,7 @@
 			h = height;
 		}
 
-		ctx.translate(x, y);
-
-		if (len == 4 || len == 6)
-			angle = arguments[len - 1];
-
-		if (angle != 0)
-			ctx.rotate(angle);
-
-		ctx.drawImage(image, -w / 2, -h / 2, w, h);
-
-		ctx.restore();
+		ctx.drawImage(image, x - w / 2, y - h / 2, w, h);
 
 		return this;
 	};

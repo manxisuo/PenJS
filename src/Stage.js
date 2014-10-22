@@ -41,12 +41,45 @@
 		// 事件
 		_lastMoveTime: null,
 
+		/**
+		 * 事件相关参数，用于实现tap事件。表示最近一次在画布上发生touchstart事件的坐标。
+		 * 例如：{x: 100, y: 200}
+		 */
+		_touchstartLoc: null,
+
 		// 在绘制帧前，是否自动清除画布。
 		autoClear: true,
+
+		beforeBindEvent: function(event, handler) {
+			var eventName = Pen.Event.getEventName(event);
+			if (eventName == 'tap' && !Pen.Util.isMobile()) {
+				this.on(event.replace('tap', 'click'), handler);
+
+				return false;
+			}
+
+			return true;
+		},
+
+		beforeUnbindEvent: function(event) {
+			var eventName = Pen.Event.getEventName(event);
+			if (eventName == 'tap' && !Pen.Util.isMobile()) {
+				// TODO 这样是有问题的，会误伤无关的click。
+				this.off(event.replace('tap', 'click'), handler);
+
+				return false;
+			}
+
+			return true;
+		},
 
 		init: _init
 	});
 
+	/**
+	 * 获取事件发生位置相对于画布的坐标。
+	 * @param e 事件对象。对于触屏事件来说是Touch对象，它也有pageX和pageY等属性，因此使用此方法。修改实现时注意。
+	 */
 	function _getEventLocation(me, e) {
 		var offset = Pen.DocUtil.offset(me.canvas);
 
@@ -63,23 +96,58 @@
 		// TODO
 	}
 
+	function _dispatchTouchEvent(me, e) {
+		var touches = e.touches, locList = [];
+		var loc, sprites = me.sprites;
+		var sprite, prevent;
+		var i, j;
+
+		if (touches.length == 0) {
+			touches = e.changedTouches;
+		}
+
+		for (j = 0; j < touches.length; j++) {
+			loc = _getEventLocation(me, touches[j]);
+			locList.push(loc);
+
+			for (i = 0; i < sprites.length; i++) {
+				if (sprites[i] && sprites[i].dispatchEvent) {
+					sprite = sprites[i];
+
+					if (!sprite.fixed) {
+						prevent = sprite.dispatchEvent(e, loc.x - me._transX, loc.y - me._transY);
+					}
+					else {
+						prevent = sprite.dispatchEvent(e, loc.x, loc.y);
+					}
+
+					if (prevent) {
+						break;
+					}
+				}
+			}
+		}
+
+		return locList;
+	}
+
 	function _dispatchMouseEvent(me, e) {
 		var loc = _getEventLocation(me, e);
 		var sprites = me.sprites;
-		var sprite, hit;
+		var sprite, prevent;
 
 		for ( var i = 0; i < sprites.length; i++) {
 			if (sprites[i] && sprites[i].dispatchEvent) {
 				sprite = sprites[i];
 
 				if (!sprite.fixed) {
-					hit = sprite.dispatchEvent(e, loc.x - me._transX, loc.y - me._transY);
+					prevent = sprite.dispatchEvent(e, loc.x - me._transX, loc.y - me._transY);
 				}
 				else {
-					hit = sprite.dispatchEvent(e, loc.x, loc.y);
+					prevent = sprite.dispatchEvent(e, loc.x, loc.y);
 				}
 
-				if (hit) {
+				if (prevent) {
 					break;
 				}
 			}
@@ -95,6 +163,10 @@
 			return;
 		}
 
+		me.addEvents('touchstart', 'touchmove', 'touchend', 'tap');
+
+		me.addEvents('click', 'mousedown', 'mouseup', 'mousemove');
+
 		me.addEvents('started', 'paused', 'resumed', 'stopped');
 
 		// 在速度改变时触发
@@ -108,23 +180,67 @@
 
 		me._initTrackConfig();
 
+		// mobile
+		me.canvas.addEventListener('touchstart', function(e) {
+			e.preventDefault();
+
+			me.fireEvent('touchstart');
+
+			var locList = _dispatchTouchEvent(me, e);
+			if (locList.length == 1) {
+				me._touchstartLoc = locList[0];
+			}
+			else {
+				me._touchstartLoc = null;
+			}
+
+		}, false);
+
+		me.canvas.addEventListener('touchend', function(e) {
+			e.preventDefault();
+
+			me.fireEvent('touchend');
+
+			var locList = _dispatchTouchEvent(me, e);
+			var lastLoc = me._touchstartLoc;
+			if (locList.length > 0 && lastLoc != null) {
+				var loc = locList[0];
+				if (Pen.Util.distance(loc.x, loc.y, lastLoc.x, lastLoc.y) <= 10) {
+					me.fireEvent('tap');
+				}
+			}
+
+		}, false);
+
+		me.canvas.addEventListener('touchmove', function(e) {
+			e.preventDefault();
+
+			me.fireEvent('touchmove');
+			_dispatchTouchEvent(me, e);
+		}, false);
+
 		// 点击事件
 		me.canvas.addEventListener('click', function(e) {
+			me.fireEvent('click');
 			_dispatchMouseEvent(me, e);
 		}, false);
 
 		// 鼠标按下事件
 		me.canvas.addEventListener('mousedown', function(e) {
+			me.fireEvent('mousedown');
 			_dispatchMouseEvent(me, e);
 		}, false);
 
 		// 鼠标松开事件
 		me.canvas.addEventListener('mouseup', function(e) {
+			me.fireEvent('mouseup');
 			_dispatchMouseEvent(me, e);
 		}, false);
 
 		// 鼠标移动事件
 		me.canvas.addEventListener('mousemove', function(e) {
+			me.fireEvent('mousemove');
+
 			var cur = +new Date();
 			if (me._lastMoveTime != null) {
 				if (cur - me._lastMoveTime < 25) { return; }
@@ -167,7 +283,6 @@
 	Stage.prototype.add = function(sprite) {
 		if (sprite) {
 			sprite.stage = this;
-			sprite.brush = this.brush;
 			this.sprites.splice(0, 0, sprite);
 		}
 
@@ -180,25 +295,25 @@
 	Stage.prototype.addToBottom = function(sprite) {
 		if (sprite) {
 			sprite.stage = this;
-			sprite.brush = this.brush;
 			this.sprites.push(sprite);
 		}
 
 		return this;
 	};
-	
+
 	/**
 	 * 生成一个Sprite对象。
+	 * 
 	 * @param spriteClass Sprite的类或类名
 	 * @param config 初始化配置
 	 */
 	Stage.prototype.make = function(spriteClass, config) {
 		var me = this;
-		
+
 		if (Pen.Util.isString(spriteClass)) {
 			spriteClass = Pen.ClassManager.classes[spriteClass];
 		}
-		
+
 		if (spriteClass === Pen.Sprite || spriteClass.prototype instanceof Pen.Sprite) {
 			return new spriteClass(Pen.copy({
 				stage: me
@@ -208,33 +323,42 @@
 			return null;
 		}
 	};
-	
+
+	/**
+	 * 检查指定的Sprite是否已经添加到舞台。
+	 */
 	Stage.prototype.isSpriteAdded = function(sprite) {
 		var sprites = this.sprites;
 		for (i in sprites) {
-			if (sprites[i] == sprite) {
-				return true;
-			}
+			if (sprites[i] == sprite) { return true; }
 		}
-		
+
 		return false;
 	};
-	
+
+	/**
+	 * 获取一个缓动对象。
+	 * 
+	 * @param targetSprite 缓动的目标
+	 */
 	Stage.prototype.getTween = function(targetSprite) {
 		var me = this;
-		
-		if (!me.isSpriteAdded(targetSprite)) {
-			me.add(targetSprite);
-		}
-		
+
+		//		if (!me.isSpriteAdded(targetSprite)) {
+		//			me.add(targetSprite);
+		//		}
+
 		var tween = new Pen.Tween({
 			stage: me,
 			target: targetSprite
 		});
-		
+
 		return tween;
 	};
-	
+
+	/**
+	 * 检查指定的动画是否已经完成。
+	 */
 	function checkCompleted(sprite, timeStamp) {
 		if (null == sprite)
 			return true;
@@ -329,7 +453,7 @@
 	};
 
 	/**
-	 * 渲染所有动画。
+	 * 渲染舞台上的所有动画。
 	 * 为了能够在循环中删除元素，所以采用了逆序循环。而添加元素时，是放到数组开始的。这样一来，最后添加的动画将会位于顶层。
 	 * 
 	 * 
@@ -373,15 +497,19 @@
 					cur.beforeDraw(dt);
 				}
 
-				cur.fireEvent('beforedraw');
+				cur.fireEvent('beforedraw', dt);
 
 				me.brush.tmp(function() {
 					if (!cur.fixed) {
 						me.brush.translate(me._transX, me._transY);
 					}
-					cur.draw(me.brush, dt);
+
+					// 如果Sprite隐藏了，则不绘制。
+					if (!cur.hidden) {
+						cur.draw(me.brush, dt);
+					}
 				});
-				
+
 				cur.fireEvent('afterdraw');
 
 				cur.finishedCount++;
@@ -448,22 +576,51 @@
 		}
 	};
 
+	/**
+	 * 从舞台中移除指定的Sprite。
+	 * 如果Sprite被添加了多次，则都会被移除。
+	 */
 	Stage.prototype.remove = function(sprite) {
-		var sprites = this.sprites;
-		for ( var i = sprites.length - 1; i >= 0; i--) {
-			if (sprites[i] == sprite) {
-
-				if (this._track == sprite) {
-					this.stopTrack();
-				}
-
-				sprites.splice(i, 1);
-
-				break;
+		var isDel = Pen.Util.removeArrayItem(this.sprites, sprite, true);
+		if (isDel) {
+			if (this._track == sprite) {
+				this.stopTrack();
 			}
+			sprite.fireEvent('removed');
 		}
 
 		return this;
+	};
+
+	/**
+	 * 移除所有Sprite。
+	 */
+	Stage.prototype.removeAll = function() {
+		this.stopTrack();
+
+		this.sprites.forEach(function(sprite) {
+			sprite.fireEvent('removed');
+		});
+
+		this.sprites = [];
+	};
+
+	/**
+	 * 隐藏舞台上的所有Sprite。
+	 */
+	Stage.prototype.hideAll = function() {
+		this.sprites.forEach(function(sprite) {
+			sprite.hide();
+		});
+	};
+
+	/**
+	 * 显示舞台上的所有Sprite。
+	 */
+	Stage.prototype.showAll = function() {
+		this.sprites.forEach(function(sprite) {
+			sprite.show();
+		});
 	};
 
 	/**
@@ -486,11 +643,12 @@
 		this.fireEvent('speedUp', this.zoom);
 	};
 
-	/**
-	 * 清空Sprite列表.
-	 */
-	Stage.prototype.clear = function() {
-		this.stopTrack();
-		this.sprites = [];
+	Stage.prototype.getWidth = function() {
+		return this.canvas.width;
 	};
+
+	Stage.prototype.getHeight = function() {
+		return this.canvas.height;
+	};
+
 })(window);

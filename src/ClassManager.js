@@ -1,11 +1,13 @@
 (function() {
 	var Base = function() {
-
 	};
 
 	Base.prototype.callParent = function(methodName) {
-		if (this.__proto__ && this.__proto__[methodName]) { return this.__proto__[methodName]
-				.apply(this); }
+		var args = this.callParent.caller.arguments;
+		if (this.__proto__ && this.__proto__[methodName]) {
+			var result = this.__proto__[methodName].apply(this, args);
+			return result;
+		}
 	};
 
 	var ClassManager = {
@@ -13,7 +15,7 @@
 		 * 通过define方法定义的类列表。
 		 */
 		classes: {},
-			
+
 		/**
 		 * 定义类。 说明： config是一个对象。
 		 * 特殊的属性包括：extend、init、mixins。其中：
@@ -62,7 +64,7 @@
 
 				// 自动生成ID
 				this.id = Pen.getId();
-				
+
 				// 将config的属性拷贝到原型 
 				// TODO: 应该拷到原型还是this?
 				Pen.copy(this, config);
@@ -72,16 +74,20 @@
 
 				// 在实例中增加一个属性指向类。方便引用。
 				this.self = cls;
-				
+
 				// 将类名放到实例中。
 				this.$className = className;
 
 				// 调用初始化方法
+				// TODO 默认调用父类的init方法是否合理？下同
+				if (cls.prototype.init) {
+					cls.prototype.init.apply(this);
+				}
+				if (config.init) {
+					config.init.apply(this);
+				}
 				if (config2 && config2.init) {
 					config2.init.apply(this);
-				}
-				else if (config.init) {
-					config.init.apply(this);
 				}
 			};
 
@@ -109,19 +115,19 @@
 			if (className) {
 				me._buildNamespace(className, cls);
 			}
-			
+
 			// toString
-//			cls.toString = function() {
-//				var str = this.className + ": " + JSON.stringify(config);
-//				
-//				return str;
-//			};
-			
+			//			cls.toString = function() {
+			//				var str = this.className + ": " + JSON.stringify(config);
+			//				
+			//				return str;
+			//			};
+
 			// 加入列表
 			if ('' !== className) {
 				this.classes[className] = cls;
 			}
-			
+
 			return cls;
 		},
 

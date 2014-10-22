@@ -1,60 +1,180 @@
 (function(window) {
 	Pen.define('Pen.Tween', {
-		
 		//@required
 		stage: null,
-		
+
 		//@required
 		target: null,
-		
-		beforeDrawBackup: null,
-		twList: null,
+
+		_beforeDrawBackup: null,
+
+		// 缓动动作列表
+		actionList: null,
+
 		init: function() {
-			var me = this, target = me.target;
-			me.twList = [];
+			var me = this, target = me.target, ns = '.' + me.id;
+
+			// 初始化动作列表 
+			// TODO 由于ClassManager的bug。
+			me.actionList = [];
+
+			// 备份目标的beforeDraw方法
+			me._beforeDrawBackup = target.beforeDraw;
 		},
 
 		/**
 		 * 添加一个缓动动作并立即执行。
 		 */
 		to: function(duration, params) {
-			var me = this, target = me.target;
+			var me = this, ns = '.' + me.id, target = me.target;
 
-			if (!me._hasTween(target)) {
-				me.beforeDrawBackup = target.beforeDraw;
-				
+			if (me.actionList.length == 0) {
+				target.off('afterstop' + ns).on('afterstop' + ns, function() {
+					me.stop();
+				});
+			}
+
+			if (!me._hasTween(target) && me.actionList.length == 0) {
+
+				// 修改target的beforeDraw方法
 				target.beforeDraw = function() {
-					for (var i in target._tweenFnList) {
-						target._tweenFnList[i]();
+					for ( var i in target._actionFnList) {
+						target._actionFnList[i]();
 					}
 				};
 			}
-			
+
+			// 动作的类型
 			var ease = params.ease || Easing.None.easeIn;
 			delete params.ease;
 
+			// 动作是否循环
 			var loop = params.loop;
 			delete params.loop;
 
-			var tw = {
+			// 动作完成后执行的回调函数
+			var oncomplete = params.oncomplete;
+			delete params.oncomplete;
+
+			var action = {
 				duration: duration,
 				params: params,
 				startTime: -1,
 				ease: ease,
 				loop: loop,
+				oncomplete: oncomplete,
 				passing: null,
 				id: Pen.getId()
 			};
 
-			me.twList.push(tw);
+			me.actionList.push(action);
 
 			// 触发缓动开始
-			if (me.twList.length == 1) {
+			if (me.actionList.length == 1) {
 				me._handleNext();
 			}
 
 			return me;
-		}, 
+		},
+
+		/**
+		 * 处理队列中的下一个动作。
+		 */
+		_handleNext: function() {
+			var me = this, actionList = me.actionList, target = me.target;
+			var action = actionList[0], ns = '.' + me.id;
+
+			// 处理stage暂停或停止的情况
+			me.stage.off('paused' + ns, 'stopped' + ns).on('paused' + ns, 'stopped' + ns,
+					function() {
+						action.passing = +new Date - action.startTime;
+					});
+
+			// 判断是否结束
+			me.target.off('afterdraw' + ns).on('afterdraw' + ns, function() {
+				if (+new Date - action.startTime >= action.duration) {
+					me._endCurrent(action);
+				}
+			});
+
+			var params0 = {}, p;
+			for (p in action.params) {
+				params0[p] = target[p];
+			}
+
+			action.startTime = +new Date;
+
+			// 将当前动作需要执行的函数放入到target中
+			// 注意：此函数是在target的beforeDraw中调用的
+			target._actionFnList[me.id] = function() {
+
+				// 计算动作已经持续的时间。
+				// 需要判断动作是否暂停过。如果有暂停过，则暂停后的时间不计算在内。
+				var t, current = +new Date;
+				if (action.passing != null) {
+					t = action.passing;
+					action.startTime = current - action.passing;
+					action.passing = null;
+				}
+				else {
+					t = current - action.startTime;
+				}
+
+				var d = action.duration;
+
+				// 根据缓动公式，计算target的当前状态。
+				var p, b, c;
+				if (action.duration <= 0) {
+					for (p in action.params) {
+						target[p] = action.params[p];
+					}
+					me._endCurrent(action);
+				}
+				else {
+					for (p in action.params) {
+						b = params0[p];
+						c = action.params[p] - b;
+						target[p] = action.ease(t, b, c, d);
+					}
+				}
+			};
+		},
+
+		/**
+		 * 结束缓动。
+		 * 
+		 * 并恢复目标的beforeDraw(这是与cancelAll唯一不同的地方)。
+		 * 此Tween对象后续可以继续使用。
+		 */
+		stop: function() {
+			var me = this, target = me.target;
+
+			me.cancelAll();
+
+			// 恢复target的beforeDraw方法
+			if (!me._hasTween(target) && me._beforeDrawBackup != null) {
+				target.beforeDraw = me._beforeDrawBackup;
+			}
+		},
+
+		/**
+		 * 取消所有缓动动作。
+		 * 
+		 * 不恢复目标的beforeDraw(这是与stop唯一不同的地方)。
+		 * 此Tween对象后续可以继续使用。
+		 */
+		cancelAll: function() {
+			var me = this, ns = '.' + me.id, target = me.target;
+
+			me.actionList = [];
+
+			delete target._actionFnList[me.id];
+
+			target.off(ns);
+			me.stage.off(ns);
+
+			return me;
+		},
 
 		/**
 		 * 等待指定的时间间隔。
@@ -77,20 +197,33 @@
 			return this.to(duration, {});
 		},
 
-		/**
-		 * 停止当前缓动。
-		 */
-		stop: function() {
-			this._tweenOver();
+		set: function(params) {
+			return this.to(0, params);
 		},
-		
+
 		/**
-		 * 检查指定的Sprite上是否已经存在缓动。
+		 * 取消当前缓动动作。
+		 */
+		cancelCurrent: function() {
+			var me = this, actionList = me.actionList, target = me.target;
+			var action;
+
+			if (actionList.length > 0) {
+				action = actionList[0];
+
+				me._endCurrent(action, true);
+			}
+
+			return this;
+		},
+
+		/**
+		 * 检查指定的Sprite上是否存在其他缓动。
 		 */
 		_hasTween: function(sprite) {
 			if (sprite) {
 				var p;
-				for (p in sprite._tweenFnList) {
+				for (p in sprite._actionFnList) {
 					return true;
 				}
 			}
@@ -99,81 +232,32 @@
 		},
 
 		/**
-		 * 结束当前缓动。
+		 * 结束当前动作，并继续下一个动作。
+		 * 如果没有更多动作，则结束缓存。
+		 * 
+		 * @param action 当前动作。
+		 * @param isCancel 是否是被取消，即没有完成被中断。
 		 */
-		_tweenOver: function() {
-			var me = this, ns = '.' + me.id, target = me.target;
-
-			delete target._tweenFnList[me.id];
-			
-			if (!me._hasTween(target) && me.beforeDrawBackup != null) {
-				target.beforeDraw = me.beforeDrawBackup;
+		_endCurrent: function(action, isCancel) {
+			var me = this, actionList = me.actionList;
+			if (action.loop) {
+				actionList.push(actionList.shift());
+			}
+			else {
+				actionList.shift();
 			}
 
-			target.unbind(ns);
-			me.stage.unbind(ns);
+			if (!isCancel && action.oncomplete) {
+				action.oncomplete();
+			}
+
+			if (actionList.length == 0) {
+				me.stop();
+				return;
+			}
+
+			me._handleNext();
 		},
-
-		/**
-		 * 处理队列中的下一个动作。
-		 */
-		_handleNext: function() {
-			var me = this, twList = me.twList, target = me.target;
-			var tw = twList[0], ns = '.' + me.id;
-
-			// 处理stage暂停或停止的情况
-			me.stage.unbind('paused' + ns, 'stopped' + ns).on('paused' + ns, 'stopped' + ns,
-					function() {
-						tw.passing = +new Date - tw.startTime;
-					});
-
-			// 判断是否结束
-			me.target.unbind('afterdraw' + ns).on('afterdraw' + ns, function() {
-				if (+new Date - tw.startTime >= tw.duration) {
-					if (tw.loop) {
-						twList.push(twList.shift());
-					}
-					else {
-						twList.shift();
-					}
-
-					if (twList.length == 0) {
-						me._tweenOver();
-
-						return;
-					}
-					me._handleNext();
-				}
-			});
-
-			var params0 = {}, p;
-			for (p in tw.params) {
-				params0[p] = target[p];
-			}
-
-			tw.startTime = +new Date;
-
-			target._tweenFnList[me.id] = function() {
-				var t, current = +new Date;
-				if (tw.passing != null) {
-					t = tw.passing;
-					tw.startTime = current - tw.passing;
-					tw.passing = null;
-				}
-				else {
-					t = current - tw.startTime;
-				}
-
-				var d = tw.duration;
-
-				var p, b, c;
-				for (p in tw.params) {
-					b = params0[p];
-					c = tw.params[p] - b;
-					target[p] = tw.ease(t, b, c, d);
-				}
-			};
-		}
 	});
 
 	/**
