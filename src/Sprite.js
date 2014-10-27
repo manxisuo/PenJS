@@ -51,22 +51,15 @@
 		// 高度
 		h: 0,
 
-		// 运动学参数(速度)
-		//		vx: 0,
-		//		vy: 0,
-		//		omiga: 0,
+		// 透明度
+		alpha: 1.0,
 
-		// 运动学参数(加速度)
-		//		ax: 0,
-		//		ay: 0,
-
-		// 运动学参数(加速度的变化率)
-		//		kx: 0,
-		//		ky: 0,
+		// 边界点列表。用于碰撞检测。
+		borderList: null,
 
 		// 缓动函数列表。
 		// 用于实现缓动。
-		_actionFnList: null,
+		_actionFnList: {},
 
 		// 是否固定。如果取true，则在舞台处于追踪状态时位置不受影响。
 		fixed: false,
@@ -96,7 +89,7 @@
 		 * 事件相关参数，用于实现tap事件。表示已经在该Sprite上触发了touchstart，且触摸还没有结束。
 		 */
 		_touchstart: false,
-		
+
 		/**
 		 * 是否已经隐藏。
 		 */
@@ -104,7 +97,7 @@
 
 		// 在绘制每一帧前执行，通常用来改变Sprite的状态。
 		// 模板方法。
-		beforeDraw: function() {
+		beforeDraw: function(dt) {
 		},
 
 		// 绘制Sprite的某一帧。
@@ -118,6 +111,10 @@
 			return false;
 		},
 
+		getBorderList: function() {
+			return this.borderList;
+		},
+		
 		beforeBindEvent: function(event, handler) {
 			var eventName = Pen.Event.getEventName(event);
 			if (eventName == 'tap' && !Pen.Util.isMobile()) {
@@ -166,16 +163,15 @@
 			// 所有帧绘制完毕后触发。
 			// 即满足终止条件后触发。
 			this.addEvents('afterstop');
-			
+
 			// 被从舞台中删除时触发。即执行Stage的remove或removeAll方法时。
 			this.addEvents('removed');
+
+			// 隐藏和显示
+			this.addEvents('show', 'hide');
 			
-			this._actionFnList = {};
-			
-			var me = this;
-			me.on('removed', function() {
-				console.log(me.id);
-			});
+			// 发生碰撞
+			this.addEvents('collision');
 		}
 	});
 
@@ -192,26 +188,26 @@
 	 */
 	Sprite.prototype.show = function() {
 		this.hidden = false;
+		this.fireEvent('show');
 	};
-	
+
 	/**
 	 * 在舞台中隐藏。
 	 * 注意：被隐藏后，不会在舞台上渲染，不会触发用户事件(鼠标、触摸、键盘等用户操作)。
 	 */
 	Sprite.prototype.hide = function() {
 		this.hidden = true;
+		this.fireEvent('hide');
 	};
-	
+
 	/**
 	 * 给Sprite分发事件。
 	 * 内部方法，由Stage类使用。
 	 */
 	Sprite.prototype.dispatchEvent = function(e, x, y) {
-		
-		if (this.hidden) {
-			return;
-		}
-		
+
+		if (this.hidden) { return; }
+
 		switch (e.type) {
 			case 'click': {
 				var r = this.checkInside(x, y);

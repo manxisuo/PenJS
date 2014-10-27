@@ -137,17 +137,15 @@
 			if (v == value) {
 				indexList.splice(0, 0, idx);
 
-				if (isGlobal !== true) {
-					return false;
-				}
+				if (isGlobal !== true) { return false; }
 			}
 			return true;
 		});
-		
+
 		indexList.forEach(function(index) {
 			array.splice(index, 1);
 		});
-		
+
 		return indexList.length > 0;
 	};
 
@@ -197,11 +195,11 @@
 	};
 
 	Util.isArray = ('isArray' in Array) ? Array.isArray : function(value) {
-		return toString.call(value) === '[object Array]';
+		return Pen.isArray.apply(Pen, arguments);
 	};
 
 	Util.isSimpleObject = function(v) {
-		return v instanceof Object && v.constructor === Object;
+		return Pen.isSimpleObject.apply(Pen, arguments);
 	};
 
 	Util.isPrimitive = function(v) {
@@ -274,6 +272,38 @@
 
 	Util.distance = function(x1, y1, x2, y2) {
 		return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+	};
+
+	/**
+	 * 获取点到直线的距离。
+	 */
+	Util.distanceOfPointAndLine = function(x0, y0, x1, y1, x2, y2) {
+		var A = y2 - y1, B = x1 - x2, C = x2 * y1 - x1 * y2;
+		var Z = A * A + B * B;
+		var x, y, d;
+
+		x = x0 - A * (A * x0 + B * y0 + C) / Z;
+		y = y0 - B * (A * x0 + B * y0 + C) / Z;
+		d = Math.abs(A * x0 + B * y0 + C) / Math.sqrt(Z);
+
+		return d;
+	};
+
+	/**
+	 * 求点到直线的垂足的坐标。
+	 */
+	Util.getFootPoint = function(x0, y0, x1, y1, x2, y2) {
+		var A = y2 - y1, B = x1 - x2, C = x2 * y1 - x1 * y2;
+		var Z = A * A + B * B;
+		var x, y, d;
+
+		x = x0 - A * (A * x0 + B * y0 + C) / Z;
+		y = y0 - B * (A * x0 + B * y0 + C) / Z;
+
+		return {
+			x: x,
+			y: y
+		};
 	};
 
 	/**

@@ -8,6 +8,8 @@
 		 * @required
 		 */
 		canvas: null,
+		
+		ctx: null,
 
 		init: function() {
 			this.ctx = this.canvas.getContext('2d');
@@ -265,6 +267,17 @@
 		return this;
 	};
 
+	/**
+	 * 设置画布的Alpha值.
+	 * @type doubal(0.0 <= v <= 1.0)
+	 */
+	Brush.prototype.setAlpha = function(alpha) {
+		if (alpha != undefined)
+			this.ctx.globalAlpha = alpha;
+
+		return this;
+	};
+	
 	/**
 	 * 设置填充样式.
 	 */

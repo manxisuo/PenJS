@@ -47,6 +47,9 @@
 		 */
 		_touchstartLoc: null,
 
+		// 碰撞检测列表
+		_detectList: [],
+
 		// 在绘制帧前，是否自动清除画布。
 		autoClear: true,
 
@@ -278,24 +281,32 @@
 	};
 
 	/**
-	 * 在舞台顶部增加一个动画.
+	 * 在舞台顶部增加一个或多个动画.
 	 */
-	Stage.prototype.add = function(sprite) {
-		if (sprite) {
-			sprite.stage = this;
-			this.sprites.splice(0, 0, sprite);
+	Stage.prototype.add = function(/* sprite... */) {
+		var i, sprite;
+		for (i = 0; i < arguments.length; i++) {
+			sprite = arguments[i];
+			if (sprite) {
+				sprite.stage = this;
+				this.sprites.splice(0, 0, sprite);
+			}
 		}
 
 		return this;
 	};
 
 	/**
-	 * 在舞台底部增加一个动画。
+	 * 在舞台底部增加一个或多个动画。
 	 */
-	Stage.prototype.addToBottom = function(sprite) {
-		if (sprite) {
-			sprite.stage = this;
-			this.sprites.push(sprite);
+	Stage.prototype.addToBottom = function(/* sprite... */) {
+		var i, sprite;
+		for (i = 0; i < arguments.length; i++) {
+			sprite = arguments[i];
+			if (sprite) {
+				sprite.stage = this;
+				this.sprites.push(sprite);
+			}
 		}
 
 		return this;
@@ -497,26 +508,38 @@
 					cur.beforeDraw(dt);
 				}
 
-				cur.fireEvent('beforedraw', dt);
-
-				me.brush.tmp(function() {
-					if (!cur.fixed) {
-						me.brush.translate(me._transX, me._transY);
-					}
-
-					// 如果Sprite隐藏了，则不绘制。
-					if (!cur.hidden) {
-						cur.draw(me.brush, dt);
-					}
-				});
-
-				cur.fireEvent('afterdraw');
+				me._drawSprite(dt, cur);
 
 				cur.finishedCount++;
 			}
 		}
 
 		me.fireEvent('afterframe');
+	};
+
+	Stage.prototype._drawSprite = function(dt, sprite) {
+		var me = this;
+
+		sprite.fireEvent('beforedraw', dt);
+
+		me.brush.tmp(function() {
+			// 处理因Track等原因导致的坐标平移。
+			if (!sprite.fixed) {
+				me.brush.translate(me._transX, me._transY);
+			}
+
+			// 处理不透明度。
+			if (sprite.alpha != undefined) {
+				me.brush.setAlpha(sprite.alpha);
+			}
+
+			// 处理是否隐藏。如果Sprite隐藏了，则不绘制。
+			if (!sprite.hidden) {
+				sprite.draw(me.brush, dt);
+			}
+		});
+
+		sprite.fireEvent('afterdraw');
 	};
 
 	/**
@@ -612,6 +635,8 @@
 		this.sprites.forEach(function(sprite) {
 			sprite.hide();
 		});
+
+		return this;
 	};
 
 	/**
@@ -621,6 +646,30 @@
 		this.sprites.forEach(function(sprite) {
 			sprite.show();
 		});
+
+		return this;
+	};
+
+	Stage.prototype.hide = function(/* sprite... */) {
+		var me = this, i;
+		for (i = 0; i < arguments.length; i++) {
+			if (arguments[i]) {
+				arguments[i].hide();
+			}
+		}
+
+		return this;
+	};
+
+	Stage.prototype.show = function(/* sprite... */) {
+		var me = this, i;
+		for (i = 0; i < arguments.length; i++) {
+			if (arguments[i]) {
+				arguments[i].show();
+			}
+		}
+
+		return this;
 	};
 
 	/**
@@ -633,6 +682,8 @@
 			this.zoom = zoom;
 			this.fireEvent('speedUp', this.zoom);
 		}
+
+		return this;
 	};
 
 	/**
@@ -641,6 +692,8 @@
 	Stage.prototype.restoreSpeed = function() {
 		this.zoom = 1;
 		this.fireEvent('speedUp', this.zoom);
+
+		return this;
 	};
 
 	Stage.prototype.getWidth = function() {
@@ -649,6 +702,54 @@
 
 	Stage.prototype.getHeight = function() {
 		return this.canvas.height;
+	};
+
+	/**
+	 * 增加碰撞检测。
+	 * @param spriteList 一组需要互相检测的Sprite
+	 */
+	Stage.prototype.addDetection = function(spriteList) {
+		this._detectList.push(spriteList);
+	};
+
+	/**
+	 * 进行碰撞检测。
+	 */
+	Stage.prototype.doDetection = function() {
+		var me = this;
+		me._detectList.forEach(function(detectGroup) {
+			var i, j, sp1, sp2, len = detectGroup.length;
+			for (i = 0; i < len; i++) {
+				for (j = i + 1; j < len; j++) {
+					me._doDetection(sp1, sp2);
+				}
+			}
+		});
+	};
+
+	Stage.prototype._doDetection = function(sprite1, sprite2) {
+		var borderList1 = sprite1.getBorderList();
+		var borderList2 = sprite2.getBorderList();
+		var len1 = borderList1.length, len2 = borderList2.length;
+
+		var i, j, border1, border2;
+		if (borderList1 && borderList2) {
+			for (i = 0; i < len1; i++) {
+				border1 = borderList1[i];
+				for (j = 0; j < len2; j++) {
+					border2 = borderList2[j];
+					if (Pen.Border.detect(border1, border2)) {
+
+						sprite1.fireEvent('collision', sprite2);
+						sprite2.fireEvent('collision', sprite1);
+
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
 	};
 
 })(window);

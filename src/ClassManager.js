@@ -1,15 +1,4 @@
 (function() {
-	var Base = function() {
-	};
-
-	Base.prototype.callParent = function(methodName) {
-		var args = this.callParent.caller.arguments;
-		if (this.__proto__ && this.__proto__[methodName]) {
-			var result = this.__proto__[methodName].apply(this, args);
-			return result;
-		}
-	};
-
 	var ClassManager = {
 		/**
 		 * 通过define方法定义的类列表。
@@ -23,7 +12,7 @@
 		 * 	init是实例化对象时的初始化函数。
 		 * 	mixins指定混入的类。例如： mixins: { event: Pen.Event }
 		 * 
-		 * @param className 类名称。可选，默认为空字符串。
+		 * @param className 类名称。可选，默认为空字符串。建议不要为空。
 		 * @param config 配置对象。可选，默认为空对象。
 		 */
 		define: function(/* [className], [config] */) {
@@ -47,6 +36,8 @@
 
 			className = className || '';
 			config = config || {};
+			
+			// 处理继承
 			parent = config.extend || Pen.Base;
 
 			// 定义类(构造函数)
@@ -116,12 +107,9 @@
 				me._buildNamespace(className, cls);
 			}
 
-			// toString
-			//			cls.toString = function() {
-			//				var str = this.className + ": " + JSON.stringify(config);
-			//				
-			//				return str;
-			//			};
+			//	cls.toString = function() {
+			//		return this.className + ": " + JSON.stringify(config);
+			//	};
 
 			// 加入列表
 			if ('' !== className) {
@@ -140,7 +128,7 @@
 			if (!className)
 				return;
 			var arr = className.split('.'), len = arr.length;
-			var i, cls, name, scope = window;
+			var i, name, scope = window;
 
 			for ( var i = 0; i < len; i++) {
 				name = arr[i];
@@ -184,6 +172,5 @@
 
 	window.Pen.define = ClassManager.define.bind(ClassManager);
 
-	window.Pen.Base = Base;
 	window.Pen.ClassManager = ClassManager;
 })();

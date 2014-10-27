@@ -82,12 +82,12 @@
 				me.stage.canvas.style.cursor = me._backupCursor;
 			});
 
-			me.on('mousedown', function() {
+			me.on('mousedown', 'touchstart', function() {
 				me.fillColor = me.FILL_COLOR.ACTIVE;
 				me.borderColor = me.BORDER_COLOR.ACTIVE;
 			});
 
-			me.on('mouseup', function() {
+			me.on('mouseup', 'touchend', function() {
 				me.fillColor = me.FILL_COLOR.HOVER;
 				me.borderColor = me.BORDER_COLOR.HOVER;
 			});

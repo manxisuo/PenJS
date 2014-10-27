@@ -40,3 +40,29 @@ Pen.define('Pen.sprite.Text', {
 		brush.fillTextWithColor(me.text, me.x, me.y, me.color, me.font);
 	}
 });
+
+/**
+ * 多边形。
+ */
+Pen.define('Pen.sprite.Polygon', {
+	extend: Pen.Sprite,
+	
+	// 多边形的顶点
+	points: [],
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,13 +1,25 @@
 (function(window) {
 	var Pen = Pen || {};
 
-	Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js',
-			'Stage.js', 'Sprite.js', 'Component.js', 'Shape.js', 'Sprites.js', 'Storage.js', 'Brush.js',
-			'Tween.js'];
+	Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js', 'Timer.js',
+			'Stage.js', 'Sprite.js', 'Group.js', 'Component.js', 'Shape.js', 'Sprites.js',
+			'Storage.js', 'Brush.js', 'Tween.js'];
 
 	Pen.config = {
 		root: '',
+		requires: [],
 		canvas: null,
+	};
+
+	Pen.Base = function() {
+	};
+
+	Pen.Base.prototype.callParent = function(methodName) {
+		var args = this.callParent.caller.arguments;
+		if (this.__proto__ && this.__proto__[methodName]) {
+			var result = this.__proto__[methodName].apply(this, args);
+			return result;
+		}
 	};
 
 	// TODO
@@ -29,6 +41,44 @@
 		};
 	})();
 
+	Pen.isArray = ('isArray' in Array) ? Array.isArray : function(value) {
+		return toString.call(value) === '[object Array]';
+	};
+
+	Pen.isSimpleObject = function(v) {
+		return v instanceof Object && v.constructor === Object;
+	};
+
+	/**
+	 * 克隆对象。
+	 * 对于[数组]和[简单对象]，会迭代其[元素]和[属性]。
+	 */
+	Pen.clone = function(source) {
+		if (source != null) {
+			// 对于[数组]，会迭代其[元素]。
+			if (Pen.isSimpleObject(source)) {
+				var obj = {}, p;
+				for (p in source) {
+					obj[p] = Pen.clone(source[p]);
+				}
+
+				return obj;
+			}
+
+			// 对于[简单对象]，会迭代其[属性]。
+			if (Pen.isArray(source)) {
+				var arr = [], i, len = source.length;
+				for (i = 0; i < len; i++) {
+					arr.push(Pen.clone(source[i]));
+				}
+
+				return arr;
+			}
+		}
+
+		return source;
+	};
+
 	/**
 	 * 将一个对象的属性合并到另一个对象。 注意：不会递归对象的属性，且不会克隆非基本类型的属性。
 	 * 
@@ -39,7 +89,7 @@
 	Pen.copy = function(target, source) {
 		if (source && target) {
 			for ( var p in source) {
-				target[p] = source[p];
+				target[p] = Pen.clone(source[p]);
 			}
 		}
 
@@ -57,7 +107,7 @@
 		if (source && target) {
 			for ( var p in source) {
 				if (target[p] === undefined) {
-					target[p] = source[p];
+					target[p] = Pen.clone(source[p]);
 				}
 			}
 		}
@@ -102,7 +152,7 @@
 	Pen._loadAllJsParallelly = function(oncomplete) {
 		var me = this;
 		var root = me.config.root;
-		var list = me._scriptList, len = list.length, count = 0;
+		var list = me._scriptList.concat(me.config.requires), len = list.length, count = 0;
 		var i, script;
 
 		for (i in list) {
@@ -127,7 +177,7 @@
 	Pen._loadAllJsSerially = function(oncomplete) {
 		var me = this;
 		var root = me.config.root;
-		var list = me._scriptList, len = list.length, count = 0;
+		var list = me._scriptList.concat(me.config.requires), len = list.length, count = 0;
 		var i, script;
 
 		var l = [];
@@ -154,7 +204,7 @@
 			l[0]();
 		}
 	};
-	
+
 	/**
 	 * 根据实际需要加载所有脚本。
 	 * TODO

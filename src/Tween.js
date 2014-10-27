@@ -9,14 +9,10 @@
 		_beforeDrawBackup: null,
 
 		// 缓动动作列表
-		actionList: null,
+		actionList: [],
 
 		init: function() {
 			var me = this, target = me.target, ns = '.' + me.id;
-
-			// 初始化动作列表 
-			// TODO 由于ClassManager的bug。
-			me.actionList = [];
 
 			// 备份目标的beforeDraw方法
 			me._beforeDrawBackup = target.beforeDraw;
