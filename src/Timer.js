@@ -1,10 +1,7 @@
 Pen.define('Pen.RAFTimer', {
 	id: -1,
-
 	task: null,
-
 	scope: null,
-
 	running: false,
 
 	/**
@@ -16,16 +13,16 @@ Pen.define('Pen.RAFTimer', {
 	 */
 	run: function(task /* [, scope] */) {
 		this.pause();
-		
-		me.task = task;
-		me.scope = arguments[1] || window;
+
+		this.task = task;
+		this.scope = arguments[1] || window;
 
 		this.resume();
 	},
 
 	_run: function() {
 		var me = this;
-		
+
 		var loop = function(timestamp) {
 			me.task.call(me.scope, timestamp);
 			me.id = Pen.RAFTimer.raf(loop);
@@ -33,9 +30,7 @@ Pen.define('Pen.RAFTimer', {
 		me.id = Pen.RAFTimer.raf(loop);
 	},
 
-	/**
-	 * 暂停定时器。
-	 */
+	// 暂停定时器。
 	pause: function() {
 		if (this.running) {
 			Pen.RAFTimer.caf(this.id);
@@ -43,9 +38,7 @@ Pen.define('Pen.RAFTimer', {
 		}
 	},
 
-	/**
-	 * 恢复定时器。
-	 */
+	// 恢复定时器。
 	resume: function() {
 		if (!this.running) {
 			this._run();
