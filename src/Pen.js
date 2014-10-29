@@ -1,9 +1,9 @@
 (function(window) {
 	var Pen = Pen || {};
 
-	Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js', 'Timer.js',
-			'Stage.js', 'Sprite.js', 'Group.js', 'Component.js', 'Shape.js', 'Sprites.js',
-			'Storage.js', 'Brush.js', 'Tween.js'];
+	Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js',
+			'Labeling.js', 'Timer.js', 'Stage.js', 'Sprite.js', 'Group.js', 'Sprites.js',
+			'Component.js', 'Shape.js', 'Storage.js', 'Brush.js', 'Tween.js'];
 
 	Pen.config = {
 		root: '',

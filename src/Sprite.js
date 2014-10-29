@@ -2,7 +2,7 @@
  * Sprite(精灵)。
  * 表示舞台上的一个独立的动画对象。可以逐帧绘制到舞台上从而实现动画效果。
  */
-var Sprite = Pen.define('Pen.Sprite', {
+Pen.define('Pen.Sprite', {
 	mixins: {
 		event: Pen.EventSource
 	},
@@ -44,12 +44,14 @@ var Sprite = Pen.define('Pen.Sprite', {
 	y: 0,
 	angle: 0,
 
-	// 宽度
+	// 宽度和高度
 	w: 0,
-
-	// 高度
 	h: 0,
 
+	// 伸缩(在旋转前的x和y方向上面的伸缩)
+	scaleX: 1,
+	scaleY: 1,
+	
 	// 透明度
 	alpha: 1.0,
 
@@ -118,7 +120,7 @@ var Sprite = Pen.define('Pen.Sprite', {
 
 		// 所有帧绘制完毕后触发。
 		// 即满足终止条件后触发。
-		this.addEvents('afterstop');
+		this.addEvents('aftercomplete');
 
 		// 被从舞台中删除时触发。即执行Stage的remove或removeAll方法时。
 		this.addEvents('removed');
@@ -211,31 +213,31 @@ var Sprite = Pen.define('Pen.Sprite', {
 		switch (e.type) {
 			case 'click': {
 				if (isInside) {
-					this.fireEvent('click', e);
+					this.fireEvent('click', e, x, y);
 				}
 
 				return this.isPrevent(r);
 			}
 			case 'mousedown': {
 				if (isInside) {
-					this.fireEvent('mousedown', e);
+					this.fireEvent('mousedown', e, x, y);
 				}
 
 				return this.isPrevent(r);
 			}
 			case 'mouseup': {
 				if (isInside) {
-					this.fireEvent('mouseup', e);
+					this.fireEvent('mouseup', e, x, y);
 				}
 
 				return this.isPrevent(r);
 			}
 			case 'mousemove': {
 				if (!this._mouseInside && isInside) {
-					this.fireEvent('mouseenter', e);
+					this.fireEvent('mouseenter', e, x, y);
 				}
 				else if (this._mouseInside && !isInside) {
-					this.fireEvent('mouseleave', e);
+					this.fireEvent('mouseleave', e, x, y);
 				}
 				this._mouseInside = isInside;
 
@@ -243,7 +245,7 @@ var Sprite = Pen.define('Pen.Sprite', {
 			}
 			case 'touchstart': {
 				if (isInside) {
-					this.fireEvent('touchstart', e);
+					this.fireEvent('touchstart', e, x, y);
 					this._touchstart = true;
 				}
 
@@ -251,16 +253,16 @@ var Sprite = Pen.define('Pen.Sprite', {
 			}
 			case 'touchmove': {
 				if (isInside) {
-					this.fireEvent('touchmove', e);
+					this.fireEvent('touchmove', e, x, y);
 				}
 
 				return this.isPrevent(r);
 			}
 			case 'touchend': {
 				if (isInside) {
-					this.fireEvent('touchend', e);
+					this.fireEvent('touchend', e, x, y);
 					if (this._touchstart) {
-						this.fireEvent('tap', e);
+						this.fireEvent('tap', e, x, y);
 					}
 				}
 				else {

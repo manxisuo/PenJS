@@ -1,3 +1,6 @@
+/**
+ * 用RAF实现的动画定时器。
+ */
 Pen.define('Pen.RAFTimer', {
 	id: -1,
 	task: null,

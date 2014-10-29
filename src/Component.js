@@ -11,6 +11,10 @@
 	 */
 	Pen.define('Pen.Button', {
 		extend: Pen.Component,
+		mixins: {
+			labeling: Pen.Labeling
+		},
+
 		FILL_COLOR: {
 			NORMAL: null,
 			HOVER: null,
@@ -23,9 +27,9 @@
 		},
 		fillColor: null,
 		borderColor: null,
-		text: '确定',
-		font: '15px sans-serif',
-		fontColor: 'black',
+		label: '确定',
+		// font: '15px sans-serif',
+		// fontColor: 'black',
 		x: 50,
 		y: 50,
 		w: 50,
@@ -105,8 +109,8 @@
 				borderColor: me.borderColor
 			});
 			me.box.draw(brush, dt);
-
-			brush.fillTextWithColor(me.text, me.x, me.y, me.fontColor, me.font);
+			me.drawLabel(brush);
+			// brush.fillTextWithColor(me.text, me.x, me.y, me.fontColor, me.font);
 		},
 		checkInside: function(ex, ey) {
 			var me = this;

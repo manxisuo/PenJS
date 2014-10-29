@@ -375,7 +375,7 @@
 	};
 
 	Util.trim = function(str) {
-		if (str && str instanceof String) {
+		if (Util.isString(str)) {
 			// return str.replace(/\s+$/g, '').replace(/^\s+/g, '');
 			return str.trim();
 		}
@@ -384,8 +384,23 @@
 		}
 	};
 
+	Util.isStringEmpty = function(str) {
+		var s = Util.trim(str);
+		return s == null || s == '';
+	};
+
 	Util.isMobile = function() {
 		return window.ontouchstart !== undefined;
+	};
+
+	/**
+	 * 用[变换矩阵]变换一个点。
+	 */
+	Util.transformPoint = function(m11, m12, m21, m22, dx, dy, x, y) {
+		return {
+			x: m11 * x + m21 * y + dx,
+			y: m12 * x + m22 * y + dy
+		};
 	};
 
 	window.Pen.Util = Util;

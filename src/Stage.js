@@ -1,11 +1,14 @@
-// 舞台类
-var Stage = Pen.define('Pen.Stage', {
+/**
+ * 舞台类。
+ */
+Pen.define('Pen.Stage', {
 	mixins: {
 		event: Pen.EventSource
 	},
 
 	statics: {
-		INTERVAL: 17
+		// 固定时间间隔模式下的时间间隔(即一秒钟60帧)
+		INTERVAL: 50 / 3
 	},
 
 	canvas: null,
@@ -67,10 +70,10 @@ var Stage = Pen.define('Pen.Stage', {
 
 		me._initTrackConfig();
 
-		me.registerEvents();
+		me._registerEvents();
 	},
 
-	registerEvents: function() {
+	_registerEvents: function() {
 		var me = this;
 		me.canvas.addEventListener('touchstart', function(e) {
 			e.preventDefault();
@@ -110,25 +113,29 @@ var Stage = Pen.define('Pen.Stage', {
 
 		// 点击事件
 		me.canvas.addEventListener('click', function(e) {
-			me.fireEvent('click');
-			me._dispatchMouseEvent(me, e);
+			var loc = me._getEventLocation(me, e);
+			me.fireEvent('click', e, loc.x, loc.y);
+			me._dispatchMouseEvent(me, e, loc.x, loc.y);
 		}, false);
 
 		// 鼠标按下事件
 		me.canvas.addEventListener('mousedown', function(e) {
-			me.fireEvent('mousedown');
-			me._dispatchMouseEvent(me, e);
+			var loc = me._getEventLocation(me, e);
+			me.fireEvent('mousedown', e, loc.x, loc.y);
+			me._dispatchMouseEvent(me, e, loc.x, loc.y);
 		}, false);
 
 		// 鼠标松开事件
 		me.canvas.addEventListener('mouseup', function(e) {
-			me.fireEvent('mouseup');
-			me._dispatchMouseEvent(me, e);
+			var loc = me._getEventLocation(me, e);
+			me.fireEvent('mouseup', e, loc.x, loc.y);
+			me._dispatchMouseEvent(me, e, loc.x, loc.y);
 		}, false);
 
 		// 鼠标移动事件
 		me.canvas.addEventListener('mousemove', function(e) {
-			me.fireEvent('mousemove');
+			var loc = me._getEventLocation(me, e);
+			me.fireEvent('mousemove', e, loc.x, loc.y);
 
 			var cur = +new Date();
 			if (me._lastMoveTime != null) {
@@ -136,7 +143,7 @@ var Stage = Pen.define('Pen.Stage', {
 			}
 
 			me._lastMoveTime = cur;
-			me._dispatchMouseEvent(me, e);
+			me._dispatchMouseEvent(me, e, loc.x, loc.y);
 		}, false);
 
 		// 键盘按下事件
@@ -190,7 +197,7 @@ var Stage = Pen.define('Pen.Stage', {
 			// var loopCount = 0;
 
 			me.timer.run(function(timeStamp) {
-				// TODO 抛弃前2次(这个负责的判断是为了在loopCount增加到3后，不再继续增加)
+				// TODO 抛弃前2次
 				// if (/* (loopCount >= 3 || loopCount < 3 && ++loopCount == 3) && */me.status == 'running') {
 				if (me.status == 'running') {
 
@@ -201,7 +208,6 @@ var Stage = Pen.define('Pen.Stage', {
 					}
 					else {
 						dt = timeStamp - me._lastTS;
-
 						if (me.inFixedIntervalMode) {
 							dt = self.INTERVAL;
 						}
@@ -254,7 +260,7 @@ var Stage = Pen.define('Pen.Stage', {
 					me.stopTrack();
 				}
 
-				cur.fireEvent('afterstop');
+				cur.fireEvent('aftercomplete');
 
 				sprites.splice(i, 1);
 
@@ -265,7 +271,7 @@ var Stage = Pen.define('Pen.Stage', {
 					cur.beforeDraw(dt);
 				}
 
-				me._drawSprite(dt, cur);
+				me._drawSprite(cur, dt);
 
 				cur.finishedCount++;
 			}
@@ -274,27 +280,30 @@ var Stage = Pen.define('Pen.Stage', {
 		me.fireEvent('afterframe');
 	},
 
-	_drawSprite: function(dt, sprite) {
+	_drawSprite: function(sprite, dt) {
 		var me = this;
 
 		sprite.fireEvent('beforedraw', dt);
 
-		me.brush.tmp(function() {
-			// 处理因Track等原因导致的坐标平移。
-			if (!sprite.fixed) {
-				me.brush.translate(me._transX, me._transY);
-			}
+		// 处理是否隐藏。如果Sprite隐藏了，则不绘制。
+		if (!sprite.hidden) {
+			
+			// 为当前的Sprite设置上下文
+			me.brush.tmp(function() {
 
-			// 处理不透明度。
-			if (sprite.alpha != undefined) {
-				me.brush.setAlpha(sprite.alpha);
-			}
+				// 处理不透明度。
+				if (sprite.alpha != undefined) {
+					me.brush.setAlpha(sprite.alpha);
+				}
 
-			// 处理是否隐藏。如果Sprite隐藏了，则不绘制。
-			if (!sprite.hidden) {
+				// 处理因Track等原因导致的坐标平移。
+				if (!sprite.fixed) {
+					me.brush.translate(me._transX, me._transY);
+				}
+
 				sprite.draw(me.brush, dt);
-			}
-		});
+			});
+		}
 
 		sprite.fireEvent('afterdraw');
 	},
@@ -676,8 +685,7 @@ var Stage = Pen.define('Pen.Stage', {
 		return locList;
 	},
 
-	_dispatchMouseEvent: function(me, e) {
-		var loc = this._getEventLocation(me, e);
+	_dispatchMouseEvent: function(me, e, x, y) {
 		var sprites = me.sprites;
 		var sprite, prevent;
 
@@ -686,10 +694,10 @@ var Stage = Pen.define('Pen.Stage', {
 				sprite = sprites[i];
 
 				if (!sprite.fixed) {
-					prevent = sprite.dispatchEvent(e, loc.x - me._transX, loc.y - me._transY);
+					prevent = sprite.dispatchEvent(e, x - me._transX, y - me._transY);
 				}
 				else {
-					prevent = sprite.dispatchEvent(e, loc.x, loc.y);
+					prevent = sprite.dispatchEvent(e, x, y);
 				}
 
 				if (prevent) {

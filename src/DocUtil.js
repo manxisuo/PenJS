@@ -35,8 +35,7 @@
 				var key = text + '#@#' + font;
 				if (buff[key]) { return buff[key]; }
 
-				var span;
-				var spans = document.getElementsByClassName('pen-test-size');
+				var span, spans = document.getElementsByClassName('pen-test-size');
 				if (spans.length > 0) {
 					span = spans[0];
 				}
@@ -50,7 +49,7 @@
 					div.appendChild(span);
 				}
 
-				span.setAttribute('style', 'white-space:nowrap;font:' + font);
+				span.setAttribute('style', 'white-space:nowrap;font:' + font + '!important');
 				span.innerText = text;
 
 				var size = {

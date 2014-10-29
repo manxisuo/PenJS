@@ -25,7 +25,7 @@
 			var me = this, ns = '.' + me.id, target = me.target;
 
 			if (me.actionList.length == 0) {
-				target.off('afterstop' + ns).on('afterstop' + ns, function() {
+				target.off('aftercomplete' + ns).on('aftercomplete' + ns, function() {
 					me.stop();
 				});
 			}
