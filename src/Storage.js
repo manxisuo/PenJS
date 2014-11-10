@@ -1,26 +1,26 @@
 (function() {
-	var manager = {
-		set: function(key, value) {
-			// if (localStorage) {
-			// localStorage.setItem(key, JSON.stringify({'data':
-			// this._beforeSet(value)}));
-			// }
-		},
+    var manager = {
+        set: function(key, value) {
+            // if (localStorage) {
+            // localStorage.setItem(key, JSON.stringify({'data':
+            // this._beforeSet(value)}));
+            // }
+        },
 
-		get: function(key) {
-			// if (localStorage) {
-			// var value = JSON.parse(localStorage.getItem(key)).data;
-			// }
-		},
+        get: function(key) {
+            // if (localStorage) {
+            // var value = JSON.parse(localStorage.getItem(key)).data;
+            // }
+        },
 
-		_beforeSet: function(obj) {
+        _beforeSet: function(obj) {
 
-		},
+        },
 
-		_beforeGet: function(obj) {
+        _beforeGet: function(obj) {
 
-		}
-	};
+        }
+    };
 
-	window.Pen.StorageManager = manager;
+    window.Pen.StorageManager = manager;
 })();
