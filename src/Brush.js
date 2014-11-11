@@ -174,9 +174,7 @@
             this.tmp(function() {
                 if (font)
                     ctx.font = font;
-                ctx
-                        .strokeText(text, x - size.width / 2, y + size.height / 2 - size.height * 3
-                                / 16);
+                ctx.strokeText(text, x - size.width / 2, y + size.height / 2 - size.height * 3 / 16);
             });
 
             return this;
@@ -255,8 +253,7 @@
             p = Pen.Util.transformPoint(sprite.scaleX, 0, 0, sprite.scaleY, 0, 0, p.x, p.y);
 
             // 旋转
-            p = Pen.Util.transformPoint(Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a), 0, 0,
-                    p.x, p.y);
+            p = Pen.Util.transformPoint(Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a), 0, 0, p.x, p.y);
 
             return p;
         },

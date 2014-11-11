@@ -240,8 +240,6 @@ Pen.define('Pen.Stage', {
     _drawFrame: function(dt, timeStamp) {
         var me = this;
 
-        me.fireEvent('beforeframe');
-
         var sprites = me.sprites, cur;
 
         me._doTrack(dt);
@@ -272,11 +270,20 @@ Pen.define('Pen.Stage', {
                 if (cur.beforeDraw && cur != me._track) {
                     cur.beforeDraw(dt);
                 }
-
-                me._drawSprite(cur, dt);
-
-                cur.finishedCount++;
             }
+        }
+
+        // 碰撞检测
+        me.doDetection();
+
+        me.fireEvent('beforeframe');
+
+        for ( var i = sprites.length - 1; i >= 0; i--) {
+            cur = sprites[i];
+
+            me._drawSprite(cur, dt);
+
+            cur.finishedCount++;
         }
 
         me.fireEvent('afterframe');
@@ -486,8 +493,10 @@ Pen.define('Pen.Stage', {
         var me = this;
         me._detectList.forEach(function(detectGroup) {
             var i, j, sp1, sp2, len = detectGroup.length;
-            for (i = 0; i < len; i++) {
+            for (i = 0; i < len - 1; i++) {
+                sp1 = detectGroup[i];
                 for (j = i + 1; j < len; j++) {
+                    sp2 = detectGroup[j];
                     me._doDetection(sp1, sp2);
                 }
             }
@@ -495,28 +504,13 @@ Pen.define('Pen.Stage', {
     },
 
     _doDetection: function(sprite1, sprite2) {
-        var box1 = sprite1.getBorderList();
-        var box2 = sprite2.getBorderList();
-        var len1 = box1.length, len2 = box2.length;
-
-        var i, j, border1, border2;
-        if (box1 && box2) {
-            for (i = 0; i < len1; i++) {
-                border1 = box1[i];
-                for (j = 0; j < len2; j++) {
-                    border2 = box2[j];
-                    if (Pen.Box.detect(border1, border2)) {
-
-                        sprite1.fireEvent('collision', sprite2);
-                        sprite2.fireEvent('collision', sprite1);
-
-                        return true;
-                    }
-                }
-            }
+        var collided = Pen.Box.detect(sprite1, sprite2);
+        if (collided) {
+            sprite1.fireEvent('collision', sprite2);
+            sprite2.fireEvent('collision', sprite1);
         }
 
-        return false;
+        return collided;
     },
 
     _initTrackConfig: function() {

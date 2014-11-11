@@ -97,8 +97,7 @@
         draw: function(brush, dt) {
             var me = this;
 
-            brush.roundRect(me.x, me.y, me.w, me.h, me.corners).fill(me.fillColor).stroke(
-                    me.borderColor);
+            brush.roundRect(me.x, me.y, me.w, me.h, me.corners).fill(me.fillColor).stroke(me.borderColor);
 
             me._drawText();
         },

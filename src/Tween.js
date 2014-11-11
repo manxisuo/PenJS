@@ -81,10 +81,9 @@
             var action = actionList[0], ns = '.' + me.id;
 
             // 处理stage暂停或停止的情况
-            me.stage.off('paused' + ns, 'stopped' + ns).on('paused' + ns, 'stopped' + ns,
-                    function() {
-                        action.passing = +new Date - action.startTime;
-                    });
+            me.stage.off('paused' + ns, 'stopped' + ns).on('paused' + ns, 'stopped' + ns, function() {
+                action.passing = +new Date - action.startTime;
+            });
 
             // 判断是否结束
             me.target.off('afterdraw' + ns).on('afterdraw' + ns, function() {
@@ -386,8 +385,7 @@
                 else {
                     s = p / (2 * Math.PI) * Math.asin(c / a);
                 }
-                return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p))
-                        + b;
+                return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
             },
             easeOut: function(t, b, c, d, a, p) {
                 var s;
@@ -419,11 +417,9 @@
                 else {
                     s = p / (2 * Math.PI) * Math.asin(c / a);
                 }
-                if (t < 1) { return -.5
-                        * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI)
-                                / p)) + b; }
-                return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)
-                        * .5 + c + b;
+                if (t < 1) { return -.5 * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p))
+                        + b; }
+                return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p) * .5 + c + b;
             }
         },
         Back: {

@@ -51,15 +51,13 @@ Pen.define('Pen.RAFTimer', {
 
     statics: {
         // requestAnimationFrame
-        raf: (window.requestAnimationFrame || window.mozRequestAnimationFrame
-                || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
-                || window.oRequestAnimationFrame || function(callback) {
+        raf: (window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame
+                || window.msRequestAnimationFrame || window.oRequestAnimationFrame || function(callback) {
             setTimeout(callback, 1000 / 60);
         }).bind(window),
 
         // cancelAnimationFrame
-        caf: (window.cancelAnimationFrame || window.mozCancelAnimationFrame
-                || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame
-                || window.oCancelAnimationFrame || window.clearTimeout).bind(window)
+        caf: (window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame
+                || window.msCancelAnimationFrame || window.oCancelAnimationFrame || window.clearTimeout).bind(window)
     },
 });

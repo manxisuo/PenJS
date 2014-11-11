@@ -7,17 +7,6 @@
      * 返回N个数中的最小值. 至少需要提供一个参数.
      */
     Util.min = function() {
-        // if (arguments.length == 1) {
-        // return arguments[0];
-        // }
-        // else {
-        // var a = arguments[0];
-        // var b = Util.min.apply(this, Array.prototype.slice.call(arguments, 1,
-        // arguments.length));
-        //
-        // return a <= b ? a : b;
-        // }
-
         return Math.min.apply(Math, arguments);
     };
 
@@ -25,17 +14,6 @@
      * 返回N个数中的最大值. 至少需要提供一个参数.
      */
     Util.max = function() {
-        // if (arguments.length == 1) {
-        // return arguments[0];
-        // }
-        // else {
-        // var a = arguments[0];
-        // var b = Util.max.apply(this, Array.prototype.slice.call(arguments, 1,
-        // arguments.length));
-        //
-        // return a >= b ? a : b;
-        // }
-
         return Math.max.apply(Math, arguments);
     };
 
@@ -43,10 +21,6 @@
      * 返回数组中的最小元素。
      */
     Util.minArrayItem = function(array) {
-        // return array.reduce(function(a, b) {
-        // return a <= b ? a : b;
-        // });
-
         return Math.min.apply(Math, array);
     };
 
@@ -54,10 +28,6 @@
      * 返回数组中的最大元素。
      */
     Util.maxArrayItem = function(array) {
-        // return array.reduce(function(a, b) {
-        // return a >= b ? a : b;
-        // });
-
         return Math.max.apply(Math, array);
     };
 
@@ -261,17 +231,32 @@
      */
     Util.isDotInRect = function(dotX, dotY, rectX, rectY, rectWidth, rectHeight, includeBorder) {
         if (includeBorder) {
-            return Math.abs(dotX - rectX) <= rectWidth / 2
-                    && Math.abs(dotY - rectY) <= rectHeight / 2;
+            return Math.abs(dotX - rectX) <= rectWidth / 2 && Math.abs(dotY - rectY) <= rectHeight / 2;
         }
         else {
-            return Math.abs(dotX - rectX) < rectWidth / 2
-                    && Math.abs(dotY - rectY) < rectHeight / 2;
+            return Math.abs(dotX - rectX) < rectWidth / 2 && Math.abs(dotY - rectY) < rectHeight / 2;
         }
     };
 
     Util.distance = function(x1, y1, x2, y2) {
         return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    };
+
+    Util.twoLinesIntersection = function(x1, y1, x2, y2, x3, y3, x4, y4) {
+        var p = null;
+        var k = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+        if (k !== 0) {
+            var x = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+            var y = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+
+            p = {
+                x: x / k,
+                y: y / k
+            };
+        }
+
+        return p;
     };
 
     /**

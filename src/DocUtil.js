@@ -20,8 +20,7 @@
 
             return {
                 top: box.top + (win.pageYOffset || docElem.scrollTop) - (docElem.clientTop || 0),
-                left: box.left + (win.pageXOffset || docElem.scrollLeft)
-                        - (docElem.clientLeft || 0)
+                left: box.left + (win.pageXOffset || docElem.scrollLeft) - (docElem.clientLeft || 0)
             };
         },
 

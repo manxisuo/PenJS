@@ -1,9 +1,9 @@
 (function(window) {
     var Pen = Pen || {};
 
-    Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js',
-            'Labeling.js', 'Timer.js', 'Stage.js', 'Sprite.js', 'Group.js', 'Sprites.js',
-            'Component.js', 'Shape.js', 'Storage.js', 'Brush.js', 'Tween.js'];
+    Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js', 'Labeling.js', 'Timer.js',
+            'Stage.js', 'Sprite.js', 'Group.js', 'Sprites.js', 'Component.js', 'Shape.js', 'Storage.js', 'Brush.js',
+            'Tween.js', 'Box.js'];
 
     Pen.config = {
         root: '',
@@ -52,11 +52,14 @@
     /**
      * 克隆对象。
      * 对于[数组]和[简单对象]，会迭代其[元素]和[属性]。
+     * 
+     * @param source 源对象
+     * @param deep 是否进行深度克隆。默认不进行深度克隆。
      */
-    Pen.clone = function(source) {
+    Pen.clone = function(source, deep) {
         if (source != null) {
             // 对于[数组]，会迭代其[元素]。
-            if (Pen.isSimpleObject(source)) {
+            if (Pen.isSimpleObject(source) || (typeof source === 'object' && deep)) {
                 var obj = {}, p;
                 for (p in source) {
                     obj[p] = Pen.clone(source[p]);
