@@ -9,6 +9,12 @@ Pen.define('Pen.sprite.Image', {
             brush.image(me.image, me.x, me.y, me.w, me.h);
         }, me);
     },
+
+    getBox: function() {
+        var w = this.w, h = this.h;
+        return [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
+    },
+
     checkInside: function(x, y) {
         var me = this, brush = me.stage.brush;
         brush.trans(me, function() {
@@ -61,6 +67,10 @@ Pen.define('Pen.sprite.Circle', {
             }
             me.drawLabel(brush);
         });
+    },
+
+    getBox: function() {
+        return [[this.x, this.y, this.r]];
     }
 });
 
@@ -105,6 +115,30 @@ Pen.define('Pen.sprite.Ellipse', {
 });
 
 /**
+ * 线段。
+ */
+Pen.define('Pen.sprite.Line', {
+    extend: Pen.Sprite,
+    x: 100,
+    y: 100,
+    x1: -50,
+    y1: 0,
+    x2: 50,
+    y2: 0,
+    strokeColor: '#000000',
+    draw: function(brush) {
+        var me = this;
+        brush.trans(me, function() {
+            brush.line(me.x1, me.y1, me.x2, me.y2).stroke(me.strokeColor);
+        });
+    },
+
+    getBox: function() {
+        return [[this.x1, this.y1], [this.x2, this.y2]];
+    }
+});
+
+/**
  * 矩形。
  */
 Pen.define('Pen.sprite.Rect', {
@@ -131,6 +165,11 @@ Pen.define('Pen.sprite.Rect', {
             }
             me.drawLabel(brush);
         });
+    },
+
+    getBox: function() {
+        var w = this.w, h = this.h;
+        return [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
     },
 
     checkInside: function(x, y) {
@@ -184,5 +223,9 @@ Pen.define('Pen.sprite.Polygon', {
                 brush.fill(me.fillColor);
             }
         });
+    },
+
+    getBox: function() {
+        return this.points;
     }
 });

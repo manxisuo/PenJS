@@ -120,7 +120,8 @@
     };
 
     /**
-     * 四舍五入，并保留N位小数。 注：注意使用场景。如果是为了获取字符串结果的话，应该用Number.prototype.toFixed。
+     * 四舍五入，并保留N位小数。 
+     * 注：注意使用场景。如果是为了获取字符串结果的话，应该用Number.prototype.toFixed。
      * 参考Number.prototype.toFixed和Number.prototype.toPrecision。
      * 注意：小数末尾连续的0会被丢弃，所以最终结果小数的位数可能小于N。
      * 

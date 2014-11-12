@@ -299,6 +299,11 @@ Pen.define('Pen.Stage', {
             // 为当前的Sprite设置上下文
             me.brush.tmp(function() {
 
+                // 处理线宽。
+                if (sprite.lineWidth) {
+                    me.brush.setLineWith(sprite.lineWidth);
+                }
+
                 // 处理不透明度。
                 if (sprite.alpha != undefined) {
                     me.brush.setAlpha(sprite.alpha);

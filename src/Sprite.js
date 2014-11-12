@@ -55,6 +55,9 @@ Pen.define('Pen.Sprite', {
     // 透明度
     alpha: 1.0,
 
+    // 线宽
+    lineWidth: 1,
+
     // 边界点列表。用于碰撞检测。
     box: null,
 
@@ -148,6 +151,7 @@ Pen.define('Pen.Sprite', {
         return false;
     },
 
+    // 子类可以重写。
     getBox: function() {
         return this.box;
     },
