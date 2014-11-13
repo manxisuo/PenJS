@@ -473,10 +473,10 @@
             return 0;
         }
         else if (d < r) {
-            return 1;
+            return -1;
         }
         else {
-            return -1;
+            return 1;
         }
     };
 

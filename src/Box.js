@@ -7,50 +7,73 @@
 
     /**
      * 测试圆和多边形是否碰撞。
-     * 算法：首先检测多边形的所有顶点是否在圆内部或圆上，如果存在这样的顶点，则说明发生碰撞；
-     * 如果所有顶点都不在圆内部或圆上，那么再检测圆心到多边形所有边的距离，如果存在小于或等于半径的情况，则说明发生碰撞；
-     * 如果所有距离都大于半径，那么再检测圆心是否在多边形内，如果是则发生碰撞，否则没有。
+     * -1：包含；0：相交；1：相离。
      */
     function detectCircleAndPolygon(cBox, pBox) {
         var len = pBox.length;
         var x0 = cBox[0][0], y0 = cBox[0][1], r = cBox[0][2];
 
-        // 检测多边形的所有顶点是否在圆内部或圆上
+        // 检测多边形的所有顶点与圆的关系
+        var inCircleNum = 0, outCircleNum = 0, check1;
         var i, p;
         for (i = 0; i < len; i++) {
             p = pBox[i];
-            if (Pen.Util.checkDotInCircle(p[0], p[1], x0, y0, r) <= 0) { return true; }
+            check1 = Pen.Util.checkDotInCircle(p[0], p[1], x0, y0, r);
+            if (check1 == 0) {
+                return 0;
+            }
+            else if (check1 < 0) {
+                inCircleNum++;
+            }
+            else {
+                outCircleNum++;
+            }
         }
 
-        // 检测圆心到多边形所有边的距离是否小于或等于半径
-        var j, p1, p2;
+        if (outCircleNum === 0) { return -1; }
+
+        if (inCircleNum > 0) { return 0; }
+
+        // 检测圆心到多边形所有边的距离与半径的关系
+        var j, p1, p2, d;
         for (j = 0; j < len; j++) {
             p1 = pBox[j];
             p2 = pBox[(j + 1) % len];
-
-            if (Pen.Util.distanceOfPointAndLine(x0, y0, p1[0], p1[1], p2[0], p2[1]) <= r) { return true; }
+            d = Pen.Util.distanceOfPointAndLine(x0, y0, p1[0], p1[1], p2[0], p2[1]);
+            if (d <= r) {
+                var foot = Pen.Util.getFootPoint(x0, y0, p1[0], p1[1], p2[0], p2[1]);
+                if (Pen.Util.isDotOnSegment(foot.x, foot.y, p1[0], p1[1], p2[0], p2[1])) { return 0; }
+            }
         }
 
         // 检测圆心是否在多边形内
-        return Pen.Util.checkDotInPolygon(x0, y0, pBox) <= 0;
+        return Pen.Util.checkDotInPolygon(x0, y0, pBox) < 0 ? -1 : 1;
     }
 
     /**
      * 测试两个圆是否碰撞。
-     * 算法：如果两个圆心的距离小于或等于它们的半径的和，则发生碰撞。
+     * -1：包含；0：相交；1：相离。
      */
     function detectCircles(box1, box2) {
         var x1 = box1[0][0], y1 = box1[0][1], r1 = box1[0][2];
         var x2 = box2[0][0], y2 = box2[0][1], r2 = box2[0][2];
 
-        return Pen.Util.distance(x1, y1, x2, y2) <= Math.abs(r1 + r2);
+        var d = Pen.Util.distance(x1, y1, x2, y2);
+
+        if (d >= Math.abs(r1 - r2) && d <= r1 + r2) {
+            return 0;
+        }
+        else if (d > r1 + r2) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
     }
 
     /**
      * 测试两个多边形是否碰撞。
-     * 算法：首先检测两个多边形是否存在相交的边，如果有则说明发生碰撞；
-     * 如果没有相交的边，说明两个多边形相离或包含，那么再从其中一个多边形中任取一个顶点，检测此顶点是否在另一个多边形内：
-     * 如果是则说明是包含关系，发生碰撞；如果不是，则说明是相离关系，没有发生碰撞。
+     * -1：包含：0；相交；1：相离。
      */
     function detectPolygons(box1, box2) {
         var len1 = box1.length, len2 = box2.length;
@@ -69,14 +92,14 @@
                 x4 = box2[(j + 1) % len2][0];
                 y4 = box2[(j + 1) % len2][1];
 
-                if (Pen.Util.isLineSegmentIntersectant(x1, y1, x2, y2, x3, y3, x4, y4)) { return true; }
+                if (Pen.Util.isLineSegmentIntersectant(x1, y1, x2, y2, x3, y3, x4, y4)) { return 0; }
             }
         }
 
-        if (Pen.Util.checkDotInPolygon(box1[0][0], box1[0][1], box2) <= 0) { return true; }
-        if (Pen.Util.checkDotInPolygon(box2[0][0], box2[0][1], box1) <= 0) { return true; }
+        if (Pen.Util.checkDotInPolygon(box1[0][0], box1[0][1], box2) <= 0) { return -1; }
+        if (Pen.Util.checkDotInPolygon(box2[0][0], box2[0][1], box1) <= 0) { return -1; }
 
-        return false;
+        return 1;
     }
 
     function getCircleBox(sprite) {
@@ -126,35 +149,40 @@
             /**
              * 碰撞检测。
              * 目前支撑两种类型的Box：
-             *  1. 圆形盒：[[x, y, r]]
-             *  2. 多边形盒：[[x1, y1], [x2, y2], ...]
+             *  圆形盒：[[x, y, r]]
+             *  多边形盒：[[x1, y1], [x2, y2], ...]
+             *  
+             * 返回值：
+             *  null：检测无效；
+             *  -1：包含；
+             *  0：相交；
+             *  1：相离。
              */
             detect: function(sp1, sp2) {
-                var collided = false;
-
+                var collide = null;
                 var box1 = sp1.getBox(), box2 = sp2.getBox();
 
                 // 圆形盒 & 圆形盒
                 if (isCircleBox(box1) && isCircleBox(box2)) {
-                    collided = detectCircles(getCircleBox(sp1), getCircleBox(sp2));
+                    collide = detectCircles(getCircleBox(sp1), getCircleBox(sp2));
                 }
 
                 // 圆形盒 & 多边形盒
                 else if (isCircleBox(box1) && isPolyonBox(box2)) {
-                    collided = detectCircleAndPolygon(getCircleBox(sp1), getPolygonBox(sp2));
+                    collide = detectCircleAndPolygon(getCircleBox(sp1), getPolygonBox(sp2));
                 }
 
                 // 多边形盒 & 圆形盒
                 else if (isPolyonBox(box1) && isCircleBox(box2)) {
-                    collided = detectCircleAndPolygon(getCircleBox(sp2), getPolygonBox(sp1));
+                    collide = detectCircleAndPolygon(getCircleBox(sp2), getPolygonBox(sp1));
                 }
 
                 // 多边形盒 & 多边形盒
                 else if (isPolyonBox(box1) && isPolyonBox(box2)) {
-                    collided = detectPolygons(getPolygonBox(sp1), getPolygonBox(sp2));
+                    collide = detectPolygons(getPolygonBox(sp1), getPolygonBox(sp2));
                 }
 
-                return collided;
+                return collide;
             }
         }
     });

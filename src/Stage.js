@@ -273,9 +273,6 @@ Pen.define('Pen.Stage', {
             }
         }
 
-        // 碰撞检测
-        me.doDetection();
-
         me.fireEvent('beforeframe');
 
         for ( var i = sprites.length - 1; i >= 0; i--) {
@@ -287,6 +284,9 @@ Pen.define('Pen.Stage', {
         }
 
         me.fireEvent('afterframe');
+
+        // 碰撞检测
+        me.doDetection();
     },
 
     _drawSprite: function(sprite, dt) {
@@ -509,13 +509,17 @@ Pen.define('Pen.Stage', {
     },
 
     _doDetection: function(sprite1, sprite2) {
-        var collided = Pen.Box.detect(sprite1, sprite2);
-        if (collided) {
-            sprite1.fireEvent('collision', sprite2);
-            sprite2.fireEvent('collision', sprite1);
+        var collide = Pen.Box.detect(sprite1, sprite2);
+        if (collide != null) {
+            if (collide <= 0) {
+                if (collide == 0) {
+                    sprite1.fireEvent('bordercollision', sprite2);
+                    sprite2.fireEvent('bordercollision', sprite1);
+                }
+                sprite1.fireEvent('innercollision', sprite2);
+                sprite2.fireEvent('innercollision', sprite1);
+            }
         }
-
-        return collided;
     },
 
     _initTrackConfig: function() {

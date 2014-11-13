@@ -128,8 +128,11 @@ Pen.define('Pen.Sprite', {
         // 隐藏和显示
         this.addEvents('show', 'hide');
 
-        // 发生碰撞
-        this.addEvents('collision');
+        // 发生边界碰撞
+        this.addEvents('bordercollision');
+        
+        // 发生边界或内部碰撞
+        this.addEvents('innercollision');
     },
 
     // 在绘制每一帧前执行，通常用来改变Sprite的状态。

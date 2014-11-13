@@ -70,7 +70,7 @@ Pen.define('Pen.sprite.Circle', {
     },
 
     getBox: function() {
-        return [[this.x, this.y, this.r]];
+        return [[0, 0, this.r]];
     }
 });
 
@@ -119,11 +119,11 @@ Pen.define('Pen.sprite.Ellipse', {
  */
 Pen.define('Pen.sprite.Line', {
     extend: Pen.Sprite,
-    x: 100,
-    y: 100,
-    x1: -50,
+    x: 0,
+    y: 0,
+    x1: 0,
     y1: 0,
-    x2: 50,
+    x2: 0,
     y2: 0,
     strokeColor: '#000000',
     draw: function(brush) {
