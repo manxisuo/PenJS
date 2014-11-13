@@ -300,7 +300,7 @@ Pen.define('Pen.Stage', {
             me.brush.tmp(function() {
 
                 // 处理线宽。
-                if (sprite.lineWidth) {
+                if (sprite.lineWidth != undefined) {
                     me.brush.setLineWith(sprite.lineWidth);
                 }
 

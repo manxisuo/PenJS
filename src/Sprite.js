@@ -58,9 +58,6 @@ Pen.define('Pen.Sprite', {
     // 线宽
     lineWidth: 1,
 
-    // 边界点列表。用于碰撞检测。
-    box: null,
-
     // 缓动函数列表。
     // 用于实现缓动。
     _actionFnList: {},
@@ -151,9 +148,10 @@ Pen.define('Pen.Sprite', {
         return false;
     },
 
-    // 子类可以重写。
+    // 需要检测碰撞的子类必须重写此方法。
+    // 碰撞检测通过调用Pen.Box.detect方法实现。
     getBox: function() {
-        return this.box;
+        return null;
     },
 
     beforeBindEvent: function(event, handler) {
