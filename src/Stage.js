@@ -192,7 +192,7 @@ Pen.define('Pen.Stage', {
      * 开始动画播放.
      */
     start: function() {
-        var me = this, self = me.self;
+        var me = this, self = me.$self;
 
         if (me.status == 'stopped') {
             me.status = 'running';

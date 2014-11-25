@@ -224,9 +224,7 @@
             var canvas = me.config.canvas;
             var ctx, brush, stage;
             ctx = canvas.getContext('2d');
-            brush = new Pen.Brush({
-                canvas: canvas
-            });
+            brush = new Pen.Brush(canvas);
             stage = new Pen.Stage({
                 brush: brush,
             });

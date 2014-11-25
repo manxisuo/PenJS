@@ -28,15 +28,15 @@ Pen.define('Pen.RAFTimer', {
 
         var loop = function(timestamp) {
             me.task.call(me.scope, timestamp);
-            me.id = Pen.RAFTimer.raf(loop);
+            me.$id = Pen.RAFTimer.raf(loop);
         };
-        me.id = Pen.RAFTimer.raf(loop);
+        me.$id = Pen.RAFTimer.raf(loop);
     },
 
     // 暂停定时器。
     pause: function() {
         if (this.running) {
-            Pen.RAFTimer.caf(this.id);
+            Pen.RAFTimer.caf(this.$id);
             this.running = false;
         }
     },

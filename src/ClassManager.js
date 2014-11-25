@@ -14,24 +14,25 @@
          * 
          * @param className 类名称。可选，默认为空字符串。建议不要为空。
          * @param config 配置对象。可选，默认为空对象。
+         * @param c 构造函数。可选。如果指定了构造函数，则初始化类时使用此构造函数指定的参数；否则，使用配置对象的方式。
          */
-        define: function(/* [className], [config] */) {
-            // 处理参数
+        define: function(/* [className], [config], [c] */) {
             var me = this;
-            var className, config, parent;
-            var args = arguments, len = args.length;
+            var className, config, c, parent;
 
-            if (len == 1) {
-                if (Pen.Util.isString(args[0])) {
-                    className = args[0];
+            // 处理参数
+            var i, arg;
+            for (i in arguments) {
+                arg = arguments[i];
+                if (Pen.Util.isString(arg)) {
+                    className = arg;
+                }
+                else if (Pen.Util.isFunction(arg)) {
+                    c = arg;
                 }
                 else {
-                    config = args[0];
+                    config = arg;
                 }
-            }
-            else if (len == 2) {
-                className = args[0];
-                config = args[1];
             }
 
             className = className || '';
@@ -42,6 +43,10 @@
 
             // 定义类(构造函数)
             var cls = function(config2) {
+                if (c !== undefined) {
+                    c.apply(this, arguments);
+                }
+
                 // 调用父类构造函数
                 parent.apply(this);
 
@@ -53,18 +58,20 @@
                     }
                 }
 
-                // 自动生成ID
-                this.id = Pen.getId();
-
                 // 将config的属性拷贝到原型 
                 // TODO: 应该拷到原型还是this?
                 Pen.copy(this, config);
 
                 // 将config的属性拷贝到原型
-                Pen.copy(this, config2);
+                if (c === undefined) {
+                    Pen.copy(this, config2);
+                }
+
+                // 自动生成ID
+                this.$id = Pen.getId();
 
                 // 在实例中增加一个属性指向类。方便引用。
-                this.self = cls;
+                this.$self = cls;
 
                 // 将类名放到实例中。
                 this.$className = className;

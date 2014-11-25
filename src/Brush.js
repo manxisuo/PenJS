@@ -1,15 +1,8 @@
 (function() {
-    Pen.define('Pen.Brush', {
-
-        // 画布
-        // @required
-        canvas: null,
-
-        ctx: null,
-
-        init: function() {
-            this.ctx = this.canvas.getContext('2d');
-        },
+    Pen.define('Pen.Brush', function(canvas) {
+        this.canvas = canvas;
+        this.ctx = this.canvas.getContext('2d');
+    }, {
         /**
          * 新建子路径。即将移动画笔到某个位置.
          */

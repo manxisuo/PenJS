@@ -39,8 +39,8 @@
             var me = this;
 
             // 初始化填充色和边框色
-            me.fillColor = me.self.FILL_COLOR;
-            me.borderColor = me.self.BORDER_COLOR;
+            me.fillColor = me.$self.FILL_COLOR;
+            me.borderColor = me.$self.BORDER_COLOR;
 
             // 初始化文本
             if (me.text != null && me.text !== '') {
@@ -135,7 +135,7 @@
             Y: 2
         },
         draw: function(brush, dt) {
-            var me = this, self = me.self;
+            var me = this, self = me.$self;
 
             brush.tmp(function() {
                 brush.setStrokeStyle(me.color);

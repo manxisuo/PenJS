@@ -12,7 +12,7 @@
         actionList: [],
 
         init: function() {
-            var me = this, target = me.target, ns = '.' + me.id;
+            var me = this, target = me.target, ns = '.' + me.$id;
 
             // 备份目标的beforeDraw方法
             me._beforeDrawBackup = target.beforeDraw;
@@ -22,7 +22,7 @@
          * 添加一个缓动动作并立即执行。
          */
         to: function(duration, params) {
-            var me = this, ns = '.' + me.id, target = me.target;
+            var me = this, ns = '.' + me.$id, target = me.target;
 
             if (me.actionList.length == 0) {
                 target.off('aftercomplete' + ns).on('aftercomplete' + ns, function() {
@@ -78,7 +78,7 @@
          */
         _handleNext: function() {
             var me = this, actionList = me.actionList, target = me.target;
-            var action = actionList[0], ns = '.' + me.id;
+            var action = actionList[0], ns = '.' + me.$id;
 
             // 处理stage暂停或停止的情况
             me.stage.off('paused' + ns, 'stopped' + ns).on('paused' + ns, 'stopped' + ns, function() {
@@ -101,7 +101,7 @@
 
             // 将当前动作需要执行的函数放入到target中
             // 注意：此函数是在target的beforeDraw中调用的
-            target._actionFnList[me.id] = function() {
+            target._actionFnList[me.$id] = function() {
 
                 // 计算动作已经持续的时间。
                 // 需要判断动作是否暂停过。如果有暂停过，则暂停后的时间不计算在内。
@@ -159,11 +159,11 @@
          * 此Tween对象后续可以继续使用。
          */
         cancelAll: function() {
-            var me = this, ns = '.' + me.id, target = me.target;
+            var me = this, ns = '.' + me.$id, target = me.target;
 
             me.actionList = [];
 
-            delete target._actionFnList[me.id];
+            delete target._actionFnList[me.$id];
 
             target.off(ns);
             me.stage.off(ns);
