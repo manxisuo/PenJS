@@ -267,8 +267,8 @@ Pen.define('Pen.Stage', {
                 continue;
             }
             else {
-                if (cur.beforeDraw && cur != me._track) {
-                    cur.beforeDraw(dt);
+                if (cur._beforeDraw && cur != me._track) {
+                    cur._beforeDraw(dt);
                 }
             }
         }
@@ -492,6 +492,27 @@ Pen.define('Pen.Stage', {
     },
 
     /**
+     * 从碰撞检测列表中移除。
+     */
+    removeDetection: function(sprite) {
+        var detectList = this._detectList;
+        var i, detectGroup;
+        var j;
+        for (i = detectList.length - 1; i >= 0; i--) {
+            detectGroup = detectList[i];
+            for (j = detectGroup.length - 1; j >= 0; j--) {
+                if (sprite === detectGroup[j]) {
+                    detectGroup.splice(j, 1);
+                    break;
+                }
+            }
+            if (detectGroup.length < 2) {
+                detectList.splice(i, 1);
+            }
+        }
+    },
+
+    /**
      * 进行碰撞检测。
      */
     doDetection: function() {
@@ -500,9 +521,13 @@ Pen.define('Pen.Stage', {
             var i, j, sp1, sp2, len = detectGroup.length;
             for (i = 0; i < len - 1; i++) {
                 sp1 = detectGroup[i];
-                for (j = i + 1; j < len; j++) {
-                    sp2 = detectGroup[j];
-                    me._doDetection(sp1, sp2);
+                if (me.isSpriteAdded(sp1)) {
+                    for (j = i + 1; j < len; j++) {
+                        sp2 = detectGroup[j];
+                        if (me.isSpriteAdded(sp2)) {
+                            me._doDetection(sp1, sp2);
+                        }
+                    }
                 }
             }
         });
@@ -532,6 +557,22 @@ Pen.define('Pen.Stage', {
     },
 
     /**
+     * 在舞台中查找指定的Sprite。
+     * 
+     * @returns 如果找到则返回索引，如果没找到返回-1。
+     */
+    _findSprite: function(sprite) {
+        if (null != sprite) {
+            var i, len = this.sprites.length;
+            for (i = 0; i < len; i++) {
+                if (sprite === this.sprites[i]) { return i; }
+            }
+        }
+
+        return -1;
+    },
+
+    /**
      * 在舞台顶部增加一个或多个动画.
      */
     add: function(/* sprite... */) {
@@ -545,6 +586,31 @@ Pen.define('Pen.Stage', {
         }
 
         return this;
+    },
+
+    _addAt: function(sprite, index) {
+        sprite.stage = this;
+        this.sprites.splice(index, 0, sprite);
+    },
+
+    addAbove: function(sprite, which) {
+        var index = this._findSprite(which);
+        if (-1 === index) {
+            this.add(sprite);
+        }
+        else {
+            this._addAt(sprite, index);
+        }
+    },
+
+    addBelow: function(sprite, which) {
+        var index = this._findSprite(which);
+        if (-1 === index) {
+            this.add(sprite);
+        }
+        else {
+            this._addAt(sprite, index + 1);
+        }
     },
 
     /**
@@ -592,7 +658,7 @@ Pen.define('Pen.Stage', {
     isSpriteAdded: function(sprite) {
         var sprites = this.sprites;
         for (i in sprites) {
-            if (sprites[i] == sprite) { return true; }
+            if (sprites[i] === sprite) { return true; }
         }
 
         return false;
@@ -617,7 +683,7 @@ Pen.define('Pen.Stage', {
         var track = (me._track != null);
 
         if (track) {
-            me._track.beforeDraw(dt);
+            me._track._beforeDraw(dt);
 
             me._transX = -me._track.x + me._trackConfig.x;
             me._transY = -me._track.y + me._trackConfig.y;

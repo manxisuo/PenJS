@@ -65,6 +65,9 @@ Pen.define('Pen.Sprite', {
     // 是否固定。如果取true，则在舞台处于追踪状态时位置不受影响。
     fixed: false,
 
+    // 是否处于静止不动的状态
+    still: false,
+    
     // TODO 暂未使用。
     stoppable: true,
 
@@ -138,6 +141,12 @@ Pen.define('Pen.Sprite', {
     // 在绘制每一帧前执行，通常用来改变Sprite的状态。
     // 模板方法。
     beforeDraw: function(dt) {
+    },
+    
+    _beforeDraw: function(dt) {
+        if (!this.still) {
+            this.beforeDraw(dt);
+        }
     },
 
     // 绘制Sprite的某一帧。

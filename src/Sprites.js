@@ -11,8 +11,7 @@ Pen.define('Pen.sprite.Image', {
     },
 
     getBox: function() {
-        var w = this.w, h = this.h;
-        return [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
+        return Pen.PolygonBox.createRectBox(0, 0, this.w, this.h);
     },
 
     checkInside: function(x, y) {
@@ -70,7 +69,7 @@ Pen.define('Pen.sprite.Circle', {
     },
 
     getBox: function() {
-        return [[0, 0, this.r]];
+        return new Pen.CircleBox(0, 0, this.r);
     }
 });
 
@@ -134,7 +133,7 @@ Pen.define('Pen.sprite.Line', {
     },
 
     getBox: function() {
-        return [[this.x1, this.y1], [this.x2, this.y2]];
+        return new Pen.PolygonBox([[this.x1, this.y1], [this.x2, this.y2]]);
     }
 });
 
@@ -168,8 +167,7 @@ Pen.define('Pen.sprite.Rect', {
     },
 
     getBox: function() {
-        var w = this.w, h = this.h;
-        return [[-w / 2, -h / 2], [w / 2, -h / 2], [w / 2, h / 2], [-w / 2, h / 2]];
+        return Pen.PolygonBox.createRectBox(0, 0, this.w, this.h);
     },
 
     checkInside: function(x, y) {
@@ -226,6 +224,6 @@ Pen.define('Pen.sprite.Polygon', {
     },
 
     getBox: function() {
-        return this.points;
+        return new Pen.PolygonBox(this.points);
     }
 });

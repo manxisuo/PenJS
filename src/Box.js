@@ -102,11 +102,10 @@
         return 1;
     }
 
-    function getCircleBox(sprite) {
-        var box = Pen.clone(sprite.getBox());
-        var x0 = box[0][0], y0 = box[0][1];
+    function getCircleBox(cbox, sprite) {
+        var box = [[cbox.x, cbox.y, cbox.r]];
         var a = -sprite.angle;
-        var p = Pen.Util.transformPoint(Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a), 0, 0, x0, y0);
+        var p = Pen.Util.transformPoint(Math.cos(a), -Math.sin(a), Math.sin(a), Math.cos(a), 0, 0, cbox.x, cbox.y);
 
         box[0][0] = p.x + sprite.x;
         box[0][1] = p.y + sprite.y;
@@ -114,8 +113,8 @@
         return box;
     }
 
-    function getPolygonBox(sprite) {
-        var box = Pen.clone(sprite.getBox());
+    function getPolygonBox(box, sprite) {
+        var box = Pen.clone(box.points);
         var i, x0, y0, x, y, a = -sprite.angle;
 
         var m11 = Math.cos(a), m12 = -Math.sin(a), m21 = Math.sin(a), m22 = Math.cos(a);
@@ -136,11 +135,60 @@
     }
 
     function isCircleBox(box) {
-        return (null != box && box.length == 1 && box[0].length == 3);
+        return box instanceof Pen.CircleBox;
     }
 
     function isPolyonBox(box) {
-        return (null != box && box.length > 1);
+        return box instanceof Pen.PolygonBox;
+    }
+
+    function isGroupBox(box) {
+        return box instanceof Pen.GroupBox;
+    }
+
+    function _detect(box1, sp1, box2, sp2) {
+        var collide = null, i, r;
+
+        if (isGroupBox(box1)) {
+            for (i in box1.boxes) {
+                r = _detect(box1.boxes[i], sp1, box2, sp2);
+                if (r <= 0) { return r; }
+            }
+
+            return 1;
+        }
+
+        if (isGroupBox(box2)) {
+            var i;
+            for (i in box2.boxes) {
+                r = _detect(box1, sp1, box2.boxes[i], sp2);
+                if (r <= 0) { return r; }
+            }
+
+            return 1;
+        }
+
+        // 圆形盒 & 圆形盒
+        if (isCircleBox(box1) && isCircleBox(box2)) {
+            collide = detectCircles(getCircleBox(box1, sp1), getCircleBox(box2, sp2));
+        }
+
+        // 圆形盒 & 多边形盒
+        else if (isCircleBox(box1) && isPolyonBox(box2)) {
+            collide = detectCircleAndPolygon(getCircleBox(box1, sp1), getPolygonBox(box2, sp2));
+        }
+
+        // 多边形盒 & 圆形盒
+        else if (isPolyonBox(box1) && isCircleBox(box2)) {
+            collide = detectCircleAndPolygon(getCircleBox(sp2), getPolygonBox(box1, sp1));
+        }
+
+        // 多边形盒 & 多边形盒
+        else if (isPolyonBox(box1) && isPolyonBox(box2)) {
+            collide = detectPolygons(getPolygonBox(box1, sp1), getPolygonBox(box2, sp2));
+        }
+
+        return collide;
     }
 
     Pen.define('Pen.Box', {
@@ -159,31 +207,48 @@
              *  1：相离。
              */
             detect: function(sp1, sp2) {
-                var collide = null;
                 var box1 = sp1.getBox(), box2 = sp2.getBox();
 
-                // 圆形盒 & 圆形盒
-                if (isCircleBox(box1) && isCircleBox(box2)) {
-                    collide = detectCircles(getCircleBox(sp1), getCircleBox(sp2));
-                }
-
-                // 圆形盒 & 多边形盒
-                else if (isCircleBox(box1) && isPolyonBox(box2)) {
-                    collide = detectCircleAndPolygon(getCircleBox(sp1), getPolygonBox(sp2));
-                }
-
-                // 多边形盒 & 圆形盒
-                else if (isPolyonBox(box1) && isCircleBox(box2)) {
-                    collide = detectCircleAndPolygon(getCircleBox(sp2), getPolygonBox(sp1));
-                }
-
-                // 多边形盒 & 多边形盒
-                else if (isPolyonBox(box1) && isPolyonBox(box2)) {
-                    collide = detectPolygons(getPolygonBox(sp1), getPolygonBox(sp2));
-                }
-
-                return collide;
+                return _detect(box1, sp1, box2, sp2);
             }
+        }
+    });
+
+    /**
+     * 圆形盒。
+     */
+    Pen.define('Pen.CircleBox', {
+        construct: function(x, y, r) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+        }
+    });
+
+    /**
+     * 多边形盒。
+     * points: [[x1, y1], [x2, y2], ...]
+     */
+    Pen.define('Pen.PolygonBox', {
+        construct: function(points) {
+            this.points = points;
+        },
+        statics: {
+            createRectBox: function(x, y, w, h) {
+                var points = [[x - w / 2, y - h / 2], [x + w / 2, y - h / 2], [x + w / 2, y + h / 2],
+                        [x - w / 2, y + h / 2]];
+                return new Pen.PolygonBox(points);
+            }
+        }
+    });
+
+    /**
+     * 盒列表。
+     * @param boxes 基本盒(圆形盒或多边形盒)的数组
+     */
+    Pen.define('Pen.GroupBox', {
+        construct: function(boxes) {
+            this.boxes = boxes;
         }
     });
 })();

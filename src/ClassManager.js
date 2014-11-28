@@ -14,11 +14,10 @@
          * 
          * @param className 类名称。可选，默认为空字符串。建议不要为空。
          * @param config 配置对象。可选，默认为空对象。
-         * @param c 构造函数。可选。如果指定了构造函数，则初始化类时使用此构造函数指定的参数；否则，使用配置对象的方式。
          */
-        define: function(/* [className], [config], [c] */) {
+        define: function(/* [className], [config] */) {
             var me = this;
-            var className, config, c, parent;
+            var className, config, parent, construct;
 
             // 处理参数
             var i, arg;
@@ -26,9 +25,6 @@
                 arg = arguments[i];
                 if (Pen.Util.isString(arg)) {
                     className = arg;
-                }
-                else if (Pen.Util.isFunction(arg)) {
-                    c = arg;
                 }
                 else {
                     config = arg;
@@ -38,15 +34,19 @@
             className = className || '';
             config = config || {};
 
+            // 处理构造函数
+            construct = config.construct || undefined;
+            delete config.construct;
+            
             // 处理继承
             parent = config.extend || Pen.Base;
 
             // 定义类(构造函数)
             var cls = function(config2) {
-                if (c !== undefined) {
-                    c.apply(this, arguments);
+                if (construct !== undefined) {
+                    construct.apply(this, arguments);
                 }
-
+                
                 // 调用父类构造函数
                 parent.apply(this);
 
@@ -63,7 +63,7 @@
                 Pen.copy(this, config);
 
                 // 将config的属性拷贝到原型
-                if (c === undefined) {
+                if (construct === undefined) {
                     Pen.copy(this, config2);
                 }
 
@@ -104,7 +104,6 @@
             // 静态变量和方法
             if (config.statics) {
                 Pen.copy(cls, config.statics);
-
                 delete config.statics;
             }
 
