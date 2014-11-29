@@ -150,7 +150,7 @@ Pen.require(['Pen.Labeling', 'Pen.Sprite', 'Pen.RoundRect'], function() {
             brush.trans(me, function() {
                 brush.rect(me.x, me.y, me.w, me.h);
                 brush.stroke(me.strokeColor);
-                brush.rect(me.x - (1 - me.progress) * me.w / 2, me.y, me.w, me.h);
+                brush.rect(me.x - (1 - me.progress) * me.w / 2, me.y, me.progress * me.w, me.h);
                 brush.fill(me.fillColor);
                 me.drawLabel(brush);
             });
