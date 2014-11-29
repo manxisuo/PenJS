@@ -1,4 +1,5 @@
-(function(window) {
+Pen.require(['Pen.Util'], function() {
+
     /**
      * 事件对象。
      */
@@ -188,4 +189,4 @@
 
     window.Pen.Event = Event;
     window.Pen.EventSource = EventSource;
-})(window);
+});

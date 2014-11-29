@@ -23,7 +23,7 @@
             var i, arg;
             for (i in arguments) {
                 arg = arguments[i];
-                if (Pen.Util.isString(arg)) {
+                if (typeof arg == 'string') {
                     className = arg;
                 }
                 else {
@@ -37,7 +37,7 @@
             // 处理构造函数
             construct = config.construct || undefined;
             delete config.construct;
-            
+
             // 处理继承
             parent = config.extend || Pen.Base;
 
@@ -46,7 +46,7 @@
                 if (construct !== undefined) {
                     construct.apply(this, arguments);
                 }
-                
+
                 // 调用父类构造函数
                 parent.apply(this);
 
@@ -136,7 +136,7 @@
             var arr = className.split('.'), len = arr.length;
             var i, name, scope = window;
 
-            for ( var i = 0; i < len; i++) {
+            for (i = 0; i < len; i++) {
                 name = arr[i];
                 if (undefined == scope[name]) {
                     scope[name] = {};

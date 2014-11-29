@@ -1,4 +1,4 @@
-(function(window) {
+Pen.require(['Pen.Labeling', 'Pen.Sprite', 'Pen.RoundRect'], function() {
     /**
      * 组件类。
      */
@@ -117,4 +117,4 @@
             return me.borders.checkInside(ex, ey);
         }
     });
-})(window);
+});

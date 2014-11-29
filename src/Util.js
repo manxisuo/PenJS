@@ -312,7 +312,7 @@
      * 判断两条线段(线段x1,y1---x2,y2和线段x3,y3---x4,y4)是否相交。
      */
     Util.isLineSegmentIntersectant = function(x1, y1, x2, y2, x3, y3, x4, y4) {
-        var p = Pen.Util.twoLinesIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
+        var p = Util.twoLinesIntersection(x1, y1, x2, y2, x3, y3, x4, y4);
         if (null !== p) {
             var c1 = p.x >= x1 && p.x <= x2 || p.x >= x2 && p.x <= x1;
             var c2 = p.y >= y1 && p.y <= y2 || p.y >= y2 && p.y <= y1;

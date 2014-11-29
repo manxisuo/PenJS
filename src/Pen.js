@@ -1,9 +1,15 @@
 (function(window) {
     var Pen = Pen || {};
 
-    Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js', 'ObjectPool.js',
-            'Labeling.js', 'Timer.js', 'Stage.js', 'Sprite.js', 'Group.js', 'Sprites.js', 'Component.js', 'Shape.js',
-            'Storage.js', 'Brush.js', 'Tween.js', 'Box.js'];
+    Pen._scriptList = [
+
+    'Box.js', 'Tween.js', 'Brush.js', 'Storage.js', 'Shape.js',
+
+    'Component.js', 'Sprites.js', 'Group.js', 'Sprite.js', 'Stage.js',
+
+    'Timer.js', 'Labeling.js', 'ObjectPool.js', 'Event.js', 'DocUtil.js',
+
+    'Loader.js', 'Util.js'];
 
     Pen.config = {
         root: null,
@@ -24,8 +30,79 @@
         }
     };
 
-    // TODO
-    Pen.require = function(className) {
+    // 等待加载的项目列表。
+    Pen.waitQueue = [];
+
+    /**
+     * 检测指定的字符串表示的类或函数(类)是否存在。
+     * 例如：'A.B.C', 'A.b.C.d.E'
+     */
+    Pen.isExist = function(objectString) {
+        if (objectString) {
+            var arr = objectString.split('.'), len = arr.length;
+            var i, name, scope = window;
+
+            for (i = 0; i < len; i++) {
+                name = arr[i];
+                if (undefined == scope[name]) { return false; }
+                scope = scope[name];
+            }
+
+            return true;
+        }
+
+        return false;
+    };
+
+    /**
+     * 有条件的执行某个函数。
+     * 当需要的类或对象都已经存在时，立即执行；否则，加入等待列表，等需要的类或对象加载完成后再执行。
+     * 
+     * @param requireList
+     * @param callback
+     */
+    Pen.require = function(requireList, callback) {
+        var i, len = requireList.length, absentList = [];
+        for (i = 0; i < len; i++) {
+            if (!Pen.isExist(requireList[i])) {
+                absentList.push(requireList[i]);
+            }
+        }
+
+        if (absentList.length > 0) {
+            Pen.waitQueue.push({
+                absentList: absentList,
+                callback: callback
+            });
+        }
+        else {
+            callback();
+        }
+    };
+
+    Pen._checkWaitQueue = function() {
+        var waitItem, k, hasNewLoaded = false;
+        for (k = Pen.waitQueue.length - 1; k >= 0; k--) {
+            waitItem = Pen.waitQueue[k];
+
+            var j, absentList = waitItem.absentList;
+            for (j = absentList.length - 1; j >= 0; j--) {
+                if (Pen.isExist(absentList[j])) {
+                    absentList.splice(j, 1);
+                }
+            }
+
+            if (absentList.length == 0) {
+                Pen.waitQueue.splice(k, 1);
+                waitItem.callback();
+                hasNewLoaded = true;
+            }
+        }
+
+        // 如果此次检查，存在解除堵塞的函数，则继续检查。
+        if (hasNewLoaded) {
+            Pen._checkWaitQueue();
+        }
     };
 
     Pen.setConfig = function(config) {
@@ -89,7 +166,8 @@
     };
 
     /**
-     * 将一个对象的属性合并到另一个对象。 注意：不会递归对象的属性，且不会克隆非基本类型的属性。
+     * 将一个对象的属性合并到另一个对象。 
+     * 注意：不会递归对象的属性，且不会克隆非基本类型的属性。即只是"浅复制"。
      * 
      * @param target 目标对象
      * @param source 源对象
@@ -131,10 +209,12 @@
      * @param callback 回调函数
      */
     Pen.loadJS = function(path, callback) {
-        var script = document.createElement('script');
+        var me = this, script = document.createElement('script');
         script.src = path;
         script.type = 'text/javascript';
         script.onload = function() {
+            me._checkWaitQueue();
+
             if (callback) {
                 callback();
             }
@@ -156,9 +236,9 @@
     }
 
     /**
-     * 并行地加载所有脚本。
+     * 加载所有脚本。
      */
-    Pen._loadAllJsParallelly = function(oncomplete) {
+    Pen._loadAllJs = function(oncomplete) {
         var me = this;
         var list = me._scriptList.concat(me.config.requires), len = list.length, count = 0;
         var i, script;
@@ -179,46 +259,7 @@
         }
     };
 
-    /**
-     * 串行地加载所有脚本。
-     */
-    Pen._loadAllJsSerially = function(oncomplete) {
-        var me = this;
-        var list = me._scriptList.concat(me.config.requires), len = list.length, count = 0;
-        var i, script;
-
-        var l = [];
-        for (i in list) {
-            script = list[i];
-            (function(script) {
-                l.push(function() {
-                    me.loadJS(getFullPath(me.config.root, script), function() {
-                        l.shift();
-                        if (l.length > 0) {
-                            l[0]();
-                        }
-                        else {
-                            if (oncomplete) {
-                                oncomplete();
-                            }
-                        }
-                    });
-                });
-            })(script);
-        }
-
-        if (l.length > 0) {
-            l[0]();
-        }
-    };
-
-    /**
-     * 根据实际需要加载所有脚本。
-     * TODO
-     */
-    Pen._loadAllJsAsRequired = function(oncomplete) {
-    };
-
+    // 获取框架脚本的路径
     function getScriptPath() {
         var i, src, scripts = document.querySelectorAll('script');
         var re = /(.*[\/|\\])Pen.js$/;
@@ -230,6 +271,7 @@
         return '';
     }
 
+    // 获取画布
     function getCanvas(config) {
         var c = config.canvas, canvas;
 
@@ -248,7 +290,8 @@
         }
 
         return canvas;
-    };
+    }
+    ;
 
     /**
      * 初始化Pen JS。
@@ -260,32 +303,41 @@
             config.root = getScriptPath();
         }
 
-        me._loadAllJsSerially(function() {
-            var canvas = getCanvas(config);
-            if (config.fullscreen) {
-                canvas.width = $(window).width();
-                canvas.height = $(window).height();
-            }
-            
-            var ctx = canvas.getContext('2d');
-            var brush = new Pen.Brush(canvas);
-            var stage = new Pen.Stage({
-                brush: brush,
-            });
+        // 加载ClassManager类
+        me.loadJS(getFullPath(me.config.root, 'ClassManager.js'), function() {
 
-            Pen.copy(Pen.Global, {
-                canvas: canvas,
-                ctx: ctx,
-                brush: brush,
-                stage: stage
-            });
-
-            Pen.Loader.load(config.resources, function() {
-                if (oncomplete) {
-                    oncomplete();
+            // 加载所有的框架脚本
+            me._loadAllJs(function() {
+                
+                // 获取画布
+                var canvas = getCanvas(config);
+                if (config.fullscreen) {
+                    canvas.width = $(window).width();
+                    canvas.height = $(window).height();
                 }
 
-            }, onprogress);
+                var ctx = canvas.getContext('2d');
+                var brush = new Pen.Brush(canvas);
+                var stage = new Pen.Stage({
+                    brush: brush,
+                });
+
+                // 设置全局变量(Pen.Global)
+                Pen.copy(Pen.Global, {
+                    canvas: canvas,
+                    ctx: ctx,
+                    brush: brush,
+                    stage: stage
+                });
+
+                // 加载用户的资源
+                Pen.Loader.load(config.resources, function() {
+                    if (oncomplete) {
+                        oncomplete();
+                    }
+
+                }, onprogress);
+            });
         });
     };
 

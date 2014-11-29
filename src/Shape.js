@@ -1,4 +1,5 @@
-(function(window, Pen) {
+Pen.require(['Pen.Sprite', 'Pen.Util'], function() {
+
     /**
      * 形状。
      */
@@ -157,4 +158,4 @@
             });
         }
     });
-})(window, Pen);
+});

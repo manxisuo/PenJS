@@ -1,6 +1,10 @@
-(function() {
+Pen.require(['Pen.Util', 'Pen.DocUtil'], function() {
+
+    /**
+     * 笔刷。
+     */
     Pen.define('Pen.Brush', {
-        
+
         /**
          * 构造函数。
          */
@@ -516,4 +520,4 @@
     Gradient.prototype.make = function() {
         return this.gradient;
     };
-})();
+});

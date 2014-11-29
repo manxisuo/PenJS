@@ -1,4 +1,4 @@
-(function(window) {
+Pen.require([], function() {
     /**
      * 池中存放对象的封装。
      */
@@ -6,20 +6,20 @@
         this.obj = obj;
         this.busy = false;
     }
-    
+
     /**
      * 可池化的。
      * 混入类。
      */
     Pen.define('Pen.Poolable', {
-        
+
     });
 
     /**
      * 对象池。
      */
     Pen.define('Pen.ObjectPool', {
-        
+
         /**
          * 构造函数。
          * @param type 池中存放的对象的类型
@@ -88,5 +88,4 @@
             }
         }
     });
-
-})(window);
+});
