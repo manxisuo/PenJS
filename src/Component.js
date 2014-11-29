@@ -135,14 +135,14 @@ Pen.require(['Pen.Labeling', 'Pen.Sprite', 'Pen.RoundRect'], function() {
         init: function() {
             var cw = Pen.Global.canvas.width;
             var ch = Pen.Global.canvas.height;
-            this.w = cw * 0.8;
+            this.w = cw * 0.75;
             this.h = 50;
             this.x = cw / 2;
             this.y = ch / 2;
         },
 
         beforeDraw: function(dt) {
-            this.label = this.progress * 100 + '%';
+            this.label = (this.progress * 100).toFixed(2) + '%';
         },
 
         draw: function(brush) {

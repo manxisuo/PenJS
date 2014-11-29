@@ -7,6 +7,7 @@ function init() {
                 birdD: 'image/bird/down-t.png',
                 cloud: 'image/bird/cloud.png',
             },
+            audios: [],
             scripts: ['script/bird-lib.js']
         }
     });
@@ -16,7 +17,10 @@ function init() {
 
     initor.onReady(function() {
         Pen.Util.log('ready!');
-        bar = new Pen.ProgressBar();
+        bar = new Pen.ProgressBar({
+            strokeColor: '#000000',
+            fillColor: '#DDDDDD'
+        });
         stage = Pen.Global.stage;
         stage.add(bar);
         stage.start();
