@@ -532,6 +532,10 @@
             y: m12 * x + m22 * y + dy
         };
     };
+    
+    Util.error = function(msg) {
+        throw new Error(msg);
+    };
 
     window.Pen.Util = Util;
 })(window);

@@ -13,20 +13,6 @@
      */
     Loader.audios = {};
 
-    /**
-     * 加载资源。
-     * TODO
-     */
-    Loader.loadResources = function() {
-    };
-
-    /**
-     * 加载声音资源。
-     * TODO
-     */
-    Loader.loadAudios = function() {
-    };
-
     Loader.load = function(config, oncomplete, onprogress) {
         var me = this;
         var resName, resList = [];
@@ -76,7 +62,7 @@
                         }
                     });
                 }
-                else if (res.type == 'scripts') {
+                else if (res.type == 'scripts' || res.type == '_scripts') {
                     Pen.loadJS(res.path, function() {
                         loaded++;
 

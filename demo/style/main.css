@@ -1,0 +1,12 @@
+body {
+	margin: 0;
+	overflow: hidden !important;
+}
+
+#canvas {
+	border: 0px solid gray;
+}
+
+#content {
+	margin: 0;
+}

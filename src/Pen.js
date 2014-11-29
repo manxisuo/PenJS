@@ -1,14 +1,16 @@
 (function(window) {
     var Pen = Pen || {};
 
-    Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js', 'Labeling.js', 'Timer.js',
-            'Stage.js', 'Sprite.js', 'Group.js', 'Sprites.js', 'Component.js', 'Shape.js', 'Storage.js', 'Brush.js',
-            'Tween.js', 'Box.js'];
+    Pen._scriptList = ['Util.js', 'Loader.js', 'DocUtil.js', 'ClassManager.js', 'Event.js', 'ObjectPool.js',
+            'Labeling.js', 'Timer.js', 'Stage.js', 'Sprite.js', 'Group.js', 'Sprites.js', 'Component.js', 'Shape.js',
+            'Storage.js', 'Brush.js', 'Tween.js', 'Box.js'];
 
     Pen.config = {
-        root: '',
+        root: null,
         requires: [],
         canvas: null,
+        resources: {},
+        fullscreen: true
     };
 
     Pen.Base = function() {
@@ -80,6 +82,10 @@
         }
 
         return source;
+    };
+
+    // TODO
+    Pen.copyDeep = function() {
     };
 
     /**
@@ -154,7 +160,6 @@
      */
     Pen._loadAllJsParallelly = function(oncomplete) {
         var me = this;
-        var root = me.config.root;
         var list = me._scriptList.concat(me.config.requires), len = list.length, count = 0;
         var i, script;
 
@@ -162,7 +167,7 @@
             script = list[i];
 
             (function(script) {
-                me.loadJS(getFullPath(root, script), function() {
+                me.loadJS(getFullPath(me.config.root, script), function() {
                     count++;
                     if (count == len) {
                         if (oncomplete) {
@@ -179,7 +184,6 @@
      */
     Pen._loadAllJsSerially = function(oncomplete) {
         var me = this;
-        var root = me.config.root;
         var list = me._scriptList.concat(me.config.requires), len = list.length, count = 0;
         var i, script;
 
@@ -188,7 +192,7 @@
             script = list[i];
             (function(script) {
                 l.push(function() {
-                    me.loadJS(getFullPath(root, script), function() {
+                    me.loadJS(getFullPath(me.config.root, script), function() {
                         l.shift();
                         if (l.length > 0) {
                             l[0]();
@@ -215,17 +219,57 @@
     Pen._loadAllJsAsRequired = function(oncomplete) {
     };
 
+    function getScriptPath() {
+        var i, src, scripts = document.querySelectorAll('script');
+        var re = /(.*[\/|\\])Pen.js$/;
+        for (i in scripts) {
+            var result = re.exec(scripts[i].src);
+            if (null != result) { return result[1]; }
+        }
+
+        return '';
+    }
+
+    function getCanvas(config) {
+        var c = config.canvas, canvas;
+
+        if (null === c || undefined === c) {
+            canvas = document.querySelector('canvas');
+        }
+        else if (typeof c == 'string') {
+            canvas = document.getElementById(c);
+            if (!canvas) {
+                canvas = document.querySelectorAll(c)[0];
+            }
+        }
+
+        if (!(canvas instanceof HTMLCanvasElement)) {
+            Pen.Util.error('Failed to find <canvas> element with ' + c);
+        }
+
+        return canvas;
+    };
+
     /**
      * 初始化Pen JS。
      */
-    Pen.init = function(callback) {
-        var me = this;
+    Pen.init = function(oncomplete, onprogress) {
+        var me = this, config = me.config;
+
+        if (!config.root) {
+            config.root = getScriptPath();
+        }
+
         me._loadAllJsSerially(function() {
-            var canvas = me.config.canvas;
-            var ctx, brush, stage;
-            ctx = canvas.getContext('2d');
-            brush = new Pen.Brush(canvas);
-            stage = new Pen.Stage({
+            var canvas = getCanvas(config);
+            if (config.fullscreen) {
+                canvas.width = $(window).width();
+                canvas.height = $(window).height();
+            }
+            
+            var ctx = canvas.getContext('2d');
+            var brush = new Pen.Brush(canvas);
+            var stage = new Pen.Stage({
                 brush: brush,
             });
 
@@ -236,9 +280,12 @@
                 stage: stage
             });
 
-            if (callback) {
-                callback();
-            }
+            Pen.Loader.load(config.resources, function() {
+                if (oncomplete) {
+                    oncomplete();
+                }
+
+            }, onprogress);
         });
     };
 
@@ -246,4 +293,5 @@
 
     window.Pen = Pen;
     window.$P = Pen;
+
 })(window);
