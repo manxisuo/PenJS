@@ -119,7 +119,7 @@ Pen.require(['Pen.Util', 'Pen.DocUtil'], function() {
             if (undefined == corners) {
                 corners = [0, 0, 0, 0];
             }
-            else if (!Pen.Util.isArray(corners)) {
+            else if (!Pen.isArray(corners)) {
                 corners = [corners, corners, corners, corners];
             }
 

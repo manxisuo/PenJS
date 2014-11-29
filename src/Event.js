@@ -1,4 +1,4 @@
-Pen.require(['Pen.Util'], function() {
+Pen.require([], function() {
 
     /**
      * 事件对象。
@@ -44,7 +44,7 @@ Pen.require(['Pen.Util'], function() {
         var i, name;
         for (i in arguments) {
             name = arguments[i];
-            if (Pen.Util.isArray(name)) {
+            if (Pen.isArray(name)) {
                 this.events = this.events.concat(name);
             }
             else {

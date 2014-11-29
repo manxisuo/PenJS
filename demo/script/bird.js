@@ -11,11 +11,27 @@ function init() {
         }
     });
 
-    Pen.init(function() {
+    var initor = Pen.init();
+    var bar, stage;
+
+    initor.onReady(function() {
+        Pen.Util.log('ready!');
+        bar = new Pen.ProgressBar();
+        stage = Pen.Global.stage;
+        stage.add(bar);
+        stage.start();
+    });
+
+    initor.onLoaded(function() {
+        stage.remove(bar);
         main();
-    }, function(per) {
+        Pen.Util.log('loaded!');
+    });
+
+    initor.onProgress(function(percent) {
         Pen.Util.log('时间:', new Date().getTime());
-        Pen.Util.log('加载:', per * 100 + '%');
+        Pen.Util.log('加载:', percent * 100 + '%');
+        bar.setProgress(percent);
     });
 }
 

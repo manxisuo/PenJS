@@ -62,7 +62,7 @@
                         }
                     });
                 }
-                else if (res.type == 'scripts' || res.type == '_scripts') {
+                else if (res.type == 'scripts') {
                     Pen.loadJS(res.path, function() {
                         loaded++;
 

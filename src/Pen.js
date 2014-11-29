@@ -1,13 +1,15 @@
 (function(window) {
     var Pen = Pen || {};
 
+    Pen._firstScripts = ['ClassManager.js', 'Event.js'];
+
     Pen._scriptList = [
 
     'Box.js', 'Tween.js', 'Brush.js', 'Storage.js', 'Shape.js',
 
     'Component.js', 'Sprites.js', 'Group.js', 'Sprite.js', 'Stage.js',
 
-    'Timer.js', 'Labeling.js', 'ObjectPool.js', 'Event.js', 'DocUtil.js',
+    'Timer.js', 'Labeling.js', 'ObjectPool.js', 'DocUtil.js',
 
     'Loader.js', 'Util.js'];
 
@@ -203,6 +205,64 @@
     };
 
     /**
+     * 并行地加载指定的脚本列表。
+     */
+    Pen._loadAllJsParallelly = function(list, oncomplete) {
+        var me = this;
+        var len = list.length, count = 0;
+        var i, script;
+
+        for (i in list) {
+            script = list[i];
+
+            (function(script) {
+                me.loadJS(getFullPath(me.config.root, script), function() {
+                    count++;
+                    if (count == len) {
+                        if (oncomplete) {
+                            oncomplete();
+                        }
+                    }
+                });
+            })(script);
+        }
+    };
+
+    /**
+     * 串行(顺序)地加载指定的脚本列表。
+     */
+    Pen._loadScriptsSerially = function(list, oncomplete) {
+        var me = this;
+        var len = list.length, count = 0;
+        var i, script;
+
+        var l = [];
+        for (i in list) {
+            script = list[i];
+
+            (function(script) {
+                l.push(function() {
+                    me.loadJS(getFullPath(me.config.root, script), function() {
+                        l.shift();
+                        if (l.length > 0) {
+                            l[0]();
+                        }
+                        else {
+                            if (oncomplete) {
+                                oncomplete();
+                            }
+                        }
+                    });
+                });
+            })(script);
+        }
+
+        if (l.length > 0) {
+            l[0]();
+        }
+    };
+
+    /**
      * 加载js脚本。
      * 
      * @param path 脚本文件
@@ -291,7 +351,30 @@
 
         return canvas;
     }
-    ;
+
+    function getInitor() {
+        var initor = {
+            ready: null,
+            loaded: null,
+            progress: null,
+            onReady: function(callback) {
+                this.ready = callback;
+            },
+            onLoaded: function(callback) {
+                this.loaded = callback;
+            },
+            onProgress: function(callback) {
+                this.progress = callback;
+            },
+            fire: function(event, arg) {
+                if (this[event]) {
+                    this[event](arg);
+                }
+            }
+        };
+
+        return initor;
+    }
 
     /**
      * 初始化Pen JS。
@@ -299,16 +382,19 @@
     Pen.init = function(oncomplete, onprogress) {
         var me = this, config = me.config;
 
+        // 获取框架脚本的根目录
         if (!config.root) {
             config.root = getScriptPath();
         }
 
-        // 加载ClassManager类
-        me.loadJS(getFullPath(me.config.root, 'ClassManager.js'), function() {
+        var initor = getInitor();
+
+        // 加载必须的脚本
+        me._loadScriptsSerially(me._firstScripts, function() {
 
             // 加载所有的框架脚本
             me._loadAllJs(function() {
-                
+
                 // 获取画布
                 var canvas = getCanvas(config);
                 if (config.fullscreen) {
@@ -330,15 +416,24 @@
                     stage: stage
                 });
 
+                initor.fire('ready');
+
                 // 加载用户的资源
                 Pen.Loader.load(config.resources, function() {
+                    initor.fire('loaded');
                     if (oncomplete) {
                         oncomplete();
                     }
-
-                }, onprogress);
+                }, function(percent) {
+                    initor.fire('progress', percent);
+                    if (onprogress) {
+                        onprogress(percent);
+                    }
+                });
             });
         });
+
+        return initor;
     };
 
     Pen.Global = {};

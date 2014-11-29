@@ -57,6 +57,9 @@ Pen.require(['Pen.EventSource', 'Pen.Event', 'Pen.Util'], function() {
         // 透明度
         alpha: 1.0,
 
+        strokeColor: '#000000',
+        fillColor: '#000000',
+
         // 线宽
         lineWidth: 1,
 

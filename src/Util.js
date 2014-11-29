@@ -168,10 +168,6 @@
         return toString.call(v) === '[object Date]';
     };
 
-    Util.isArray = ('isArray' in Array) ? Array.isArray : function(value) {
-        return Pen.isArray.apply(Pen, arguments);
-    };
-
     Util.isSimpleObject = function(v) {
         return Pen.isSimpleObject.apply(Pen, arguments);
     };

@@ -117,4 +117,47 @@ Pen.require(['Pen.Labeling', 'Pen.Sprite', 'Pen.RoundRect'], function() {
             return me.borders.checkInside(ex, ey);
         }
     });
+
+    /**
+     * 条形进度条。
+     */
+    Pen.define('Pen.ProgressBar', {
+        extend: Pen.Component,
+        mixins: {
+            labeling: Pen.Labeling
+        },
+
+        strokeColor: 'green',
+        fillColor: 'orange',
+        progress: 0,
+        labelSize: 25,
+
+        init: function() {
+            var cw = Pen.Global.canvas.width;
+            var ch = Pen.Global.canvas.height;
+            this.w = cw * 0.8;
+            this.h = 50;
+            this.x = cw / 2;
+            this.y = ch / 2;
+        },
+
+        beforeDraw: function(dt) {
+            this.label = this.progress * 100 + '%';
+        },
+
+        draw: function(brush) {
+            var me = this;
+            brush.trans(me, function() {
+                brush.rect(me.x, me.y, me.w, me.h);
+                brush.stroke(me.strokeColor);
+                brush.rect(me.x - (1 - me.progress) * me.w / 2, me.y, me.w, me.h);
+                brush.fill(me.fillColor);
+                me.drawLabel(brush);
+            });
+        },
+        setProgress: function(progress) {
+            this.progress = progress;
+        }
+    });
+
 });
