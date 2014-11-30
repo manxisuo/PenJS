@@ -13,6 +13,24 @@
      */
     Loader.audios = {};
 
+    Loader.playAudio = function(tag) {
+        this.audios[tag].currentTime = 0;
+        this.audios[tag].play();
+    };
+
+    Loader.stopAudio = function(tag) {
+        this.audios[tag].pause();
+        this.audios[tag].currentTime = 0;
+    };
+
+    Loader.pauseAudio = function(tag) {
+        this.audios[tag].pause();
+    };
+
+    Loader.resumeAudio = function(tag) {
+        this.audios[tag].play();
+    };
+
     Loader.load = function(config, oncomplete, onprogress) {
         var me = this;
         var resName, resList = [];

@@ -7,7 +7,13 @@ function init() {
                 birdD: 'image/bird/down-t.png',
                 cloud: 'image/bird/cloud.png',
             },
-            audios: [],
+            audios: {
+                wing: 'audio/bird/sfx_wing.ogg',
+                hit: 'audio/bird/sfx_hit.ogg',
+                die: 'audio/bird/sfx_die.ogg',
+                point: 'audio/bird/sfx_point.ogg',
+                swooshing: 'audio/bird/sfx_swooshing.ogg',
+            },
             scripts: ['script/bird-lib.js']
         }
     });
@@ -16,7 +22,6 @@ function init() {
     var bar, stage;
 
     initor.onReady(function() {
-        Pen.Util.log('ready!');
         bar = new Pen.ProgressBar({
             strokeColor: '#000000',
             fillColor: '#DDDDDD'
@@ -29,12 +34,9 @@ function init() {
     initor.onLoaded(function() {
         stage.remove(bar);
         main();
-        Pen.Util.log('loaded!');
     });
 
     initor.onProgress(function(percent) {
-        Pen.Util.log('时间:', new Date().getTime());
-        Pen.Util.log('加载:', percent * 100 + '%');
         bar.setProgress(percent);
     });
 }
@@ -84,6 +86,10 @@ function main() {
         stage.unbind('.clickscreen');
         stage.removeDetection(bird);
 
+        // 播放音效
+        $P.Loader.playAudio('hit');
+        $P.Loader.playAudio('die');
+
         // 取消前面的动作
         tween.cancelAll();
 
@@ -115,6 +121,7 @@ function main() {
     // 开始按钮
     var startBtn = Lib.getBtn('开始');
     startBtn.on('tap', function() {
+        $P.Loader.playAudio('swooshing');
         startGame();
     });
     stage.add(startBtn);
@@ -126,6 +133,16 @@ function main() {
         startGame();
     });
     stage.add(retryBtn);
+
+    // 记分牌
+    pointBoard = stage.make(Pen.sprite.Text, {
+        label: 0,
+        labelSize: 50,
+        labelColor: '#666666',
+        x: WIDTH / 2,
+        y: HEIGHT / 5,
+    });
+    stage.add(pointBoard);
 
     var initGroup = new Pen.Group();
     initGroup.addChild(welcomeTip, startBtn, bird);
@@ -163,18 +180,41 @@ function main() {
 
         startGroup.show();
 
+        pointBoard.label = 0;
+
         var started = false;
         stage.on('touchstart.clickscreen', 'mousedown.clickscreen', function() {
             if (!started) {
                 playTip.hide();
                 cloud.show();
                 tubes.show();
+                pointBoard.show();
                 started = true;
                 Lib.stopFlip(flipTween);
 
                 tubes.reinit();
+
+                var point = 0;
+                var last = null;
+                tubes.on('afterdraw', function() {
+                    tubes.tubes.forEach(function(tube) {
+                        x = tube.up.x;
+
+                        if (bird.x >= x && bird.x - x <= bird.w && last != tube) {
+                            last = tube;
+                            point++;
+                            $P.Loader.playAudio('point');
+                            pointBoard.label = point;
+                        }
+                    });
+
+                });
+
                 stage.addBelow(tubes, bird);
             }
+
+            // 播放音效
+            $P.Loader.playAudio('wing');
 
             // 取消前面的动作
             tween.cancelAll();
@@ -196,6 +236,7 @@ function main() {
                 angle: Math.PI / 2,
                 ease: Pen.Easing.Quad.easeIn,
                 oncomplete: function() {
+                    $P.Loader.playAudio('hit');
                     gameOver();
                 }
             });
@@ -205,6 +246,7 @@ function main() {
     // 游戏结束画面
     var gameOver = function() {
         stage.unbind('.clickscreen');
+        tubes.unbind('afterdraw');
         tubes.still = true;
         stage.hideAll().show(overGroup);
     };

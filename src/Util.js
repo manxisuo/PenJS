@@ -512,7 +512,7 @@
 
     Util.isStringEmpty = function(str) {
         var s = Util.trim(str);
-        return s == null || s == '';
+        return s === null || s===undefined || s === '';
     };
 
     Util.isMobile = function() {

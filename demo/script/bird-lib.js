@@ -11,7 +11,7 @@
         w: BIRD_SIZE,
         h: BIRD_SIZE,
         x: stage.getWidth() / 2,
-        y: stage.getWidth() / 2,
+        y: stage.getHeight() / 2,
         init: function() {
             var me = this;
             me.on('beforedraw', function(e, dt) {
