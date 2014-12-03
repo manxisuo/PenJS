@@ -11,7 +11,7 @@
 
     'Timer.js', 'Labeling.js', 'ObjectPool.js', 'DocUtil.js',
 
-    'Loader.js', 'Util.js'];
+    'Loader.js', 'Util.js', 'Task.js'];
 
     Pen.config = {
         root: null,
