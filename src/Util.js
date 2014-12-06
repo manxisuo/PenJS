@@ -529,7 +529,7 @@
         };
     };
     
-    Util.error = function(msg) {
+    Util.throwError = function(msg) {
         throw new Error(msg);
     };
 

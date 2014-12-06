@@ -11,7 +11,7 @@
 
     'Timer.js', 'Labeling.js', 'ObjectPool.js', 'DocUtil.js',
 
-    'Loader.js', 'Util.js', 'Task.js'];
+    'Loader.js', 'Util.js', 'Task2.js'];
 
     Pen.config = {
         root: null,
@@ -25,13 +25,26 @@
     };
 
     Pen.Base.prototype.callParent = function(methodName) {
-        var args = this.callParent.caller.arguments;
-        if (this.__proto__ && this.__proto__[methodName]) {
-            var result = this.__proto__[methodName].apply(this, args);
+        var args = this.callParent.caller.arguments, mtd;
+        var proto = Pen.prototypeof(this);
+        if (proto && proto[methodName]) {
+            var result = proto[methodName].apply(this, args);
             return result;
         }
     };
 
+    Pen.prototypeof = function(obj) {
+        if (null == obj || undefined == obj) {
+            return obj;
+        }
+        
+        if (Object.getPrototypeOf) {
+            return Object.getPrototypeOf(obj);
+        }
+        
+        return obj.__proto__;
+    };
+    
     // 等待加载的项目列表。
     Pen.waitQueue = [];
 
@@ -128,6 +141,19 @@
 
     Pen.isSimpleObject = function(v) {
         return v instanceof Object && v.constructor === Object;
+    };
+    
+    Pen.invokeCallback = function(callback) {
+        if (callback) {
+            var len = arguments.length;
+            if (len > 1) {
+                var args = Array.prototype.slice.call(arguments, 1, len);
+                return callback.apply(window, args);
+            }
+            else {
+                callback.apply(window);
+            }
+        }
     };
 
     /**
@@ -346,7 +372,7 @@
         }
 
         if (!(canvas instanceof HTMLCanvasElement)) {
-            Pen.Util.error('Failed to find <canvas> element with ' + c);
+            Pen.Util.throwError('Failed to find <canvas> element with ' + c);
         }
 
         return canvas;

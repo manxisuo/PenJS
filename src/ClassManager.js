@@ -40,6 +40,7 @@
 
             // 处理继承
             parent = config.extend || Pen.Base;
+            delete config.extend;
 
             // 定义类(构造函数)
             var cls = function(config2) {
