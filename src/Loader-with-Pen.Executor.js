@@ -54,57 +54,60 @@
 
         return resList;
     }
-    
-    function callback(onprogress, oncomplete, loaded, len) {
-        if (onprogress) {
-            onprogress(loaded / len);
-        }
-        if (loaded == len) {
-            if (oncomplete) {
-                oncomplete();
-            }
-        }
-    }
-    
-    Loader.load = function(config, oncomplete, onprogress) {
-        var me = this;
-        var resList = getResList(config);
-        var i, len = resList.length, res, loaded = 0;
-        for (i = 0; i < len; i++) {
-            res = resList[i];
 
+    Loader._loadRes = function() {
+    };
+
+    Loader.load = function(config, oncomplete, onprogress) {
+        var me = this, executor = new Pen.Executor();
+
+        // 全部加装完成回调
+        var finishTask = executor.sync(function() {
+            Pen.invokeCallback(oncomplete);
+        });
+
+        var resList = getResList(config), len = resList.length;
+        var loadTask, loaded = 0, i;
+        for (i = 0; i < len; i++) {
             (function(res) {
-                if (res.type == 'images') {
-                    me.loadImage(res.path, function(img) {
-                        me.images[res.name] = img;
-                        loaded++;
-                        callback(onprogress, oncomplete, loaded, len);
-                    });
-                }
-                else if (res.type == 'audios') {
-                    if (!me._supportAudio()) {
-                        loaded++;
-                        callback(onprogress, oncomplete, loaded, len);
+                loadTask = executor.async(function(callback) {
+                    if (res.type == 'images') {
+                        me.loadImage(res.path, function(img) {
+                            me.images[res.name] = img;
+                            loaded++;
+                            callback();
+                        });
                     }
-                    else {
+                    else if (res.type == 'audios') {
                         me.loadAudio(res.path, function(audio) {
                             me.audios[res.name] = audio;
                             loaded++;
-                            callback(onprogress, oncomplete, loaded, len);
+                            callback();
                         });
                     }
-                }
-                else if (res.type == 'scripts') {
-                    Pen.loadJS(res.path, function() {
-                        loaded++;
-                        callback(onprogress, oncomplete, loaded, len);
-                    });
-                }
-            })(res);
+                    else if (res.type == 'scripts') {
+                        Pen.loadJS(res.path, function() {
+                            loaded++;
+                            callback();
+                        });
+                    }
+                });
+            })(resList[i]);
+
+            // 进度回调
+            executor.sync(function() {
+                Pen.invokeCallback(onprogress, loaded / len);
+            }).after(loadTask);
+
+            finishTask.after(loadTask);
         }
+
+        executor.run();
     };
 
-    // 加载图片
+    /**
+     * 加载图片。
+     */
     Loader.loadImage = function(path, oncomplete) {
         var img = new Image();
         img.src = path;
@@ -115,7 +118,9 @@
         };
     };
 
-    // 加载音频
+    /**
+     * 加载音频。
+     */
     Loader.loadAudio = function(path, oncomplete) {
         var audio = new Audio();
         audio.src = path;
@@ -125,16 +130,6 @@
             }
         };
     };
-    
-    // TODO 是否支持加载audio
-    Loader._supportAudio = (function() {
-        var audio = new Audio();
-        var support = (null === audio.onloadeddata);
-        
-        return function() {
-            return support;
-        };
-    })();
 
     window.Pen.Loader = Loader;
 })(window);

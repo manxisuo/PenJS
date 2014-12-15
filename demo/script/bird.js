@@ -129,6 +129,7 @@ function main() {
     // 重新开始按钮
     var retryBtn = Lib.getBtn('重试');
     retryBtn.on('tap', function() {
+        $P.Loader.playAudio('swooshing');
         stage.remove(tubes);
         startGame();
     });

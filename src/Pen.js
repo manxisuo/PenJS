@@ -136,7 +136,7 @@
     })();
 
     Pen.isArray = ('isArray' in Array) ? Array.isArray : function(value) {
-        return toString.call(value) === '[object Array]';
+        return Object.prototype.toString.call(value) === '[object Array]';
     };
 
     Pen.isSimpleObject = function(v) {
