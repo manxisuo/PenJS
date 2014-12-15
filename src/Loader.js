@@ -70,6 +70,12 @@
         var me = this;
         var resList = getResList(config);
         var i, len = resList.length, res, loaded = 0;
+        
+        if (0 == len) {
+            callback(onprogress, oncomplete, 1, 1);
+            return;
+        }
+        
         for (i = 0; i < len; i++) {
             res = resList[i];
 
