@@ -21,14 +21,18 @@
 	}
 	
 	function init() {
-		while (c-- > 0) {
+		setTimeout(function() {
+			while (c-- > 0) {
 			dosth('很遗憾，你没有中奖！');
 		}
+		}, 1000);
 	}
+	
+	init();
 </script>
 
 </head>
-<body onload="init()">
+<body>
     
 </body>
 </html>
